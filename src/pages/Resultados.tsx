@@ -1,13 +1,24 @@
 import React, { useState } from 'react';
-import { BarChart3, TrendingUp, Award, ChevronDown, ChevronUp, Trash2, ThumbsUp, ThumbsDown } from 'lucide-react';
+import { BarChart3, TrendingUp, Award, ChevronDown, ChevronUp, Trash2, ThumbsUp, ThumbsDown, Lightbulb } from 'lucide-react';
 import { useDiagnosticCalculation } from '../hooks/useDiagnosticCalculation';
 import ExportPDF from '../components/ExportPDF';
 import type { DiagnosticResult, PillarScore } from '../types/diagnostic';
+
+function getRecommendation(score: number): string {
+  if (score <= 40) {
+    return "Priorize a criação de um planejamento estratégico básico, organize as finanças e defina processos essenciais para o funcionamento do negócio. Considere buscar orientação de um consultor para acelerar essa estruturação.";
+  } else if (score <= 70) {
+    return "Foco em otimizar os processos existentes, investir em capacitação da equipe e melhorar a gestão financeira. Avalie ferramentas que possam automatizar operações e aumentar a eficiência.";
+  } else {
+    return "Concentre-se na inovação, expansão de mercado e diversificação de produtos/serviços. Invista em estratégias de marketing e mantenha um controle financeiro rigoroso para sustentar o crescimento.";
+  }
+}
 
 function DiagnosticCard({ result, onDelete }: { result: DiagnosticResult; onDelete: (id: string) => void }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const maturityLevel = getMaturityLevel(Math.round(result.totalScore));
   const { best, worst } = getBestAndWorstPillars(result.pillarScores);
+  const recommendation = getRecommendation(Math.round(result.totalScore));
 
   return (
     <div className="bg-zinc-800 rounded-lg p-6">
@@ -208,6 +219,16 @@ function DiagnosticCard({ result, onDelete }: { result: DiagnosticResult; onDele
               </div>
             </div>
           </div>
+
+          <div className="bg-zinc-800 rounded-lg p-6">
+            <div className="flex items-center gap-3 mb-6">
+              <Lightbulb size={24} className="text-yellow-500" />
+              <h3 className="text-xl font-semibold text-white">Recomendações</h3>
+            </div>
+            <p className="text-gray-300 leading-relaxed">
+              {recommendation}
+            </p>
+          </div>
         </div>
       )}
     </div>
@@ -285,6 +306,7 @@ function Resultados() {
 
   const { best, worst } = getBestAndWorstPillars(latestResult.pillarScores);
   const maturityLevel = getMaturityLevel(Math.round(latestResult.totalScore));
+  const recommendation = getRecommendation(Math.round(latestResult.totalScore));
 
   return (
     <div>
@@ -502,6 +524,16 @@ function Resultados() {
                   </p>
                 </div>
               </div>
+            </div>
+
+            <div className="bg-zinc-800 rounded-lg p-6 mt-6">
+              <div className="flex items-center gap-3 mb-6">
+                <Lightbulb size={24} className="text-yellow-500" />
+                <h3 className="text-xl font-semibold text-white">Recomendações</h3>
+              </div>
+              <p className="text-gray-300 leading-relaxed">
+                {recommendation}
+              </p>
             </div>
           </div>
         </div>

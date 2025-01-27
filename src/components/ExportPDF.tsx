@@ -13,7 +13,7 @@ function ExportPDF({ result }: ExportPDFProps) {
     const pdf = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
-      format: [210, 350]
+      format: [210, 400]
     });
 
     const pageWidth = pdf.internal.pageSize.getWidth();
@@ -102,6 +102,18 @@ function ExportPDF({ result }: ExportPDFProps) {
             <h4 style="font-size: 16px; font-weight: bold; color: white; margin-bottom: 4px;">Consolidado</h4>
             <p style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">O negócio tem processos bem estabelecidos e está em fase de expansão.</p>
           </div>
+        </div>
+
+        <div style="background-color: rgba(255, 255, 255, 0.1); padding: 20px; border-radius: 8px; margin-top: 32px;">
+          <h3 style="font-size: 20px; font-weight: bold; color: white; margin-bottom: 16px;">Recomendações</h3>
+          <p style="color: rgba(255, 255, 255, 0.9); font-size: 14px; line-height: 1.6;">
+            ${result.totalScore <= 40
+              ? "Priorize a criação de um planejamento estratégico básico, organize as finanças e defina processos essenciais para o funcionamento do negócio. Considere buscar orientação de um consultor para acelerar essa estruturação."
+              : result.totalScore <= 70
+                ? "Foco em otimizar os processos existentes, investir em capacitação da equipe e melhorar a gestão financeira. Avalie ferramentas que possam automatizar operações e aumentar a eficiência."
+                : "Concentre-se na inovação, expansão de mercado e diversificação de produtos/serviços. Invista em estratégias de marketing e mantenha um controle financeiro rigoroso para sustentar o crescimento."
+            }
+          </p>
         </div>
 
         <div style="position: absolute; bottom: 20px; left: 20px; right: 20px;">
