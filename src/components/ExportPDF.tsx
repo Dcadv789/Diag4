@@ -26,18 +26,18 @@ function ExportPDF({ result }: ExportPDFProps) {
       <div style="background-color: #0030b9; padding: 20px; font-family: Arial, sans-serif; height: 100%; position: relative;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px;">
           <div style="flex-grow: 1; max-width: 70%;">
-            <h1 style="font-size: 28px; font-weight: bold; color: white;">Relatório Financeiro Empresarial</h1>
-            <p style="font-size: 16px; color: rgba(255, 255, 255, 0.8);">${new Date(result.date).toLocaleDateString('pt-BR')}</p>
+            <h1 style="font-size: 30px; font-weight: bold; color: white;">Relatório Financeiro Empresarial</h1>
+            <p style="font-size: 15px; color: rgba(255, 255, 255, 0.8);">${new Date(result.date).toLocaleDateString('pt-BR')}</p>
           </div>
           <div style="text-align: right; margin-left: 20px;">
-            <h2 style="font-size: 24px; font-weight: bold; color: white;">DC ADVISORS</h2>
+            <h2 style="font-size: 22px; font-weight: bold; color: white;">DC ADVISORS</h2>
           </div>
         </div>
 
         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 40px;">
           <div style="background-color: rgba(255, 255, 255, 0.1); padding: 16px; border-radius: 8px;">
             <h3 style="font-size: 20px; font-weight: bold; color: white; margin-bottom: 12px;">Informações da Empresa</h3>
-            <div style="display: grid; gap: 8px; font-size: 14px;">
+            <div style="display: grid; gap: 8px; font-size: 15px;">
               <p style="color: rgba(255, 255, 255, 0.9);"><strong style="color: white;">Empresa:</strong> ${result.companyData.empresa}</p>
               <p style="color: rgba(255, 255, 255, 0.9);"><strong style="color: white;">CNPJ:</strong> ${result.companyData.cnpj}</p>
               <p style="color: rgba(255, 255, 255, 0.9);"><strong style="color: white;">Responsável:</strong> ${result.companyData.nome}</p>
@@ -47,7 +47,7 @@ function ExportPDF({ result }: ExportPDFProps) {
           </div>
           <div style="background-color: rgba(255, 255, 255, 0.1); padding: 16px; border-radius: 8px;">
             <h3 style="font-size: 20px; font-weight: bold; color: white; margin-bottom: 12px;">Dados do Negócio</h3>
-            <div style="display: grid; gap: 8px; font-size: 14px;">
+            <div style="display: grid; gap: 8px; font-size: 15px;">
               <p style="color: rgba(255, 255, 255, 0.9);"><strong style="color: white;">Segmento:</strong> ${result.companyData.segmento}</p>
               <p style="color: rgba(255, 255, 255, 0.9);"><strong style="color: white;">Localização:</strong> ${result.companyData.localizacao}</p>
               <p style="color: rgba(255, 255, 255, 0.9);"><strong style="color: white;">Tempo de Atividade:</strong> ${result.companyData.tempoAtividade}</p>
@@ -57,80 +57,80 @@ function ExportPDF({ result }: ExportPDFProps) {
           </div>
         </div>
 
-        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 24px; height: 24px;">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 24px;">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;">
             <path d="M3 3v18h18"/>
             <path d="m19 9-5 5-4-4-3 3"/>
           </svg>
-          <h3 style="font-size: 20px; font-weight: bold; color: white; line-height: 24px;">Pontuação Geral</h3>
+          <h3 style="font-size: 22px; font-weight: bold; color: white; line-height: 26px;">Pontuação Geral</h3>
         </div>
 
         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; text-align: center; margin-bottom: 32px;">
           <div style="background-color: rgba(255, 255, 255, 0.1); padding: 12px; border-radius: 8px;">
-            <p style="font-size: 24px; font-weight: bold; color: white; margin-bottom: 4px;">${Math.round(result.totalScore)}</p>
-            <p style="color: rgba(255, 255, 255, 0.8); font-size: 14px;">Pontuação Total</p>
+            <p style="font-size: 22px; font-weight: bold; color: white; margin-bottom: 4px;">${Math.round(result.totalScore)}</p>
+            <p style="color: rgba(255, 255, 255, 0.8); font-size: 15px;">Pontuação Total</p>
           </div>
           <div style="background-color: rgba(255, 255, 255, 0.1); padding: 12px; border-radius: 8px;">
-            <p style="font-size: 24px; font-weight: bold; color: white; margin-bottom: 4px;">${Math.round(result.maxPossibleScore)}</p>
-            <p style="color: rgba(255, 255, 255, 0.8); font-size: 14px;">Pontuação Máxima</p>
+            <p style="font-size: 22px; font-weight: bold; color: white; margin-bottom: 4px;">${Math.round(result.maxPossibleScore)}</p>
+            <p style="color: rgba(255, 255, 255, 0.8); font-size: 15px;">Pontuação Máxima</p>
           </div>
           <div style="background-color: rgba(255, 255, 255, 0.1); padding: 12px; border-radius: 8px;">
-            <p style="font-size: 24px; font-weight: bold; color: white; margin-bottom: 4px;">${Math.round(result.percentageScore)}%</p>
-            <p style="color: rgba(255, 255, 255, 0.8); font-size: 14px;">Percentual Atingido</p>
+            <p style="font-size: 22px; font-weight: bold; color: white; margin-bottom: 4px;">${Math.round(result.percentageScore)}%</p>
+            <p style="color: rgba(255, 255, 255, 0.8); font-size: 15px;">Percentual Atingido</p>
           </div>
         </div>
 
         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 16px; margin-bottom: 32px;">
           <div style="background-color: rgba(255, 255, 255, 0.1); padding: 16px; border-radius: 8px;">
-            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px; height: 24px;">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#22c55e" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;">
                 <path d="M7 10l5 5 5-5"/>
                 <path d="M2 20h20"/>
               </svg>
-              <h4 style="font-size: 18px; font-weight: bold; color: white; line-height: 24px;">Melhor Desempenho</h4>
+              <h4 style="font-size: 20px; font-weight: bold; color: white; line-height: 26px;">Melhor Desempenho</h4>
             </div>
-            <p style="font-size: 20px; font-weight: bold; color: white; margin-bottom: 8px;">${result.pillarScores[0].pillarName}</p>
-            <p style="color: rgba(255, 255, 255, 0.8);">${Math.round(result.pillarScores[0].score)} pontos</p>
+            <p style="font-size: 22px; font-weight: bold; color: white; margin-bottom: 8px;">${result.pillarScores[0].pillarName}</p>
+            <p style="color: rgba(255, 255, 255, 0.8); font-size: 15px;">${Math.round(result.pillarScores[0].score)} pontos</p>
           </div>
           <div style="background-color: rgba(255, 255, 255, 0.1); padding: 16px; border-radius: 8px;">
-            <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 12px; height: 24px;">
-              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 12px;">
+              <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#ef4444" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;">
                 <path d="M7 14l5-5 5 5"/>
                 <path d="M2 20h20"/>
               </svg>
-              <h4 style="font-size: 18px; font-weight: bold; color: white; line-height: 24px;">Precisa de Atenção</h4>
+              <h4 style="font-size: 20px; font-weight: bold; color: white; line-height: 26px;">Precisa de Atenção</h4>
             </div>
-            <p style="font-size: 20px; font-weight: bold; color: white; margin-bottom: 8px;">${result.pillarScores[result.pillarScores.length - 1].pillarName}</p>
-            <p style="color: rgba(255, 255, 255, 0.8);">${Math.round(result.pillarScores[result.pillarScores.length - 1].score)} pontos</p>
+            <p style="font-size: 22px; font-weight: bold; color: white; margin-bottom: 8px;">${result.pillarScores[result.pillarScores.length - 1].pillarName}</p>
+            <p style="color: rgba(255, 255, 255, 0.8); font-size: 15px;">${Math.round(result.pillarScores[result.pillarScores.length - 1].score)} pontos</p>
           </div>
         </div>
 
-        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 24px; height: 24px;">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 24px;">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;">
             <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/>
             <circle cx="9" cy="7" r="4"/>
             <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
             <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
           </svg>
-          <h3 style="font-size: 20px; font-weight: bold; color: white; line-height: 24px;">Pontuação por Pilar</h3>
+          <h3 style="font-size: 22px; font-weight: bold; color: white; line-height: 26px;">Pontuação por Pilar</h3>
         </div>
 
         <div style="display: grid; gap: 12px; margin-bottom: 32px;">
           ${result.pillarScores.map(pillar => `
             <div style="background-color: rgba(255, 255, 255, 0.1); padding: 12px; border-radius: 8px;">
               <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                <h4 style="font-size: 16px; font-weight: bold; color: white;">${pillar.pillarName}</h4>
-                <p style="color: rgba(255, 255, 255, 0.8); font-size: 14px;">${Math.round(pillar.score)} / ${pillar.maxPossibleScore} pontos</p>
+                <h4 style="font-size: 15px; font-weight: bold; color: white;">${pillar.pillarName}</h4>
+                <p style="color: rgba(255, 255, 255, 0.8); font-size: 15px;">${Math.round(pillar.score)} / ${pillar.maxPossibleScore} pontos</p>
               </div>
-              <div style="width: 100%; height: 6px; background-color: rgba(255, 255, 255, 0.1); border-radius: 3px; overflow: hidden;">
+              <div style="width: 100%; height: 8px; background-color: rgba(255, 255, 255, 0.1); border-radius: 4px; overflow: hidden;">
                 <div style="width: ${pillar.percentageScore}%; height: 100%; background-color: #F47400;"></div>
               </div>
             </div>
           `).join('')}
         </div>
 
-        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 24px; height: 24px;">
-          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 24px;">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;">
             <path d="M8.21 13.89 7 23l9-9-8.48-2.58"/>
             <path d="m14.92 14.92 2.14 6.99 4.04-4.04"/>
             <path d="m14.92 14.92-8.48-2.58"/>
@@ -139,35 +139,35 @@ function ExportPDF({ result }: ExportPDFProps) {
             <path d="M17.06 21.92v-3"/>
             <path d="M20.41 18.99h-3.35"/>
           </svg>
-          <h3 style="font-size: 20px; font-weight: bold; color: white; line-height: 24px;">Maturidade do Negócio</h3>
+          <h3 style="font-size: 22px; font-weight: bold; color: white; line-height: 26px;">Maturidade do Negócio</h3>
         </div>
 
         <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
-          <div style="background-color: rgba(255, 255, 255, 0.1); padding: 12px; border-radius: 8px; ${result.totalScore <= 40 ? 'border: 2px solid #F47400;' : ''}">
-            <h4 style="font-size: 16px; font-weight: bold; color: white; margin-bottom: 4px;">Inicial</h4>
-            <p style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">O negócio está começando ou ainda não possui processos bem definidos.</p>
+          <div style="background-color: rgba(255, 255, 255, 0.1); padding: 16px; border-radius: 8px; ${result.totalScore <= 40 ? 'border: 2px solid #F47400;' : ''}">
+            <h4 style="font-size: 15px; font-weight: bold; color: white; margin-bottom: 4px;">Inicial</h4>
+            <p style="color: rgba(255, 255, 255, 0.8); font-size: 14px;">O negócio está começando ou ainda não possui processos bem definidos.</p>
           </div>
-          <div style="background-color: rgba(255, 255, 255, 0.1); padding: 12px; border-radius: 8px; ${result.totalScore > 40 && result.totalScore <= 70 ? 'border: 2px solid #F47400;' : ''}">
-            <h4 style="font-size: 16px; font-weight: bold; color: white; margin-bottom: 4px;">Em Desenvolvimento</h4>
-            <p style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">O negócio já possui alguns processos organizados, mas ainda enfrenta desafios.</p>
+          <div style="background-color: rgba(255, 255, 255, 0.1); padding: 16px; border-radius: 8px; ${result.totalScore > 40 && result.totalScore <= 70 ? 'border: 2px solid #F47400;' : ''}">
+            <h4 style="font-size: 15px; font-weight: bold; color: white; margin-bottom: 4px;">Em Desenvolvimento</h4>
+            <p style="color: rgba(255, 255, 255, 0.8); font-size: 14px;">O negócio já possui alguns processos organizados, mas ainda enfrenta desafios.</p>
           </div>
-          <div style="background-color: rgba(255, 255, 255, 0.1); padding: 12px; border-radius: 8px; ${result.totalScore > 70 ? 'border: 2px solid #F47400;' : ''}">
-            <h4 style="font-size: 16px; font-weight: bold; color: white; margin-bottom: 4px;">Consolidado</h4>
-            <p style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">O negócio tem processos bem estabelecidos e está em fase de expansão.</p>
+          <div style="background-color: rgba(255, 255, 255, 0.1); padding: 16px; border-radius: 8px; ${result.totalScore > 70 ? 'border: 2px solid #F47400;' : ''}">
+            <h4 style="font-size: 15px; font-weight: bold; color: white; margin-bottom: 4px;">Consolidado</h4>
+            <p style="color: rgba(255, 255, 255, 0.8); font-size: 14px;">O negócio tem processos bem estabelecidos e está em fase de expansão.</p>
           </div>
         </div>
 
         <div style="margin-top: 32px;">
-          <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 16px; height: 24px;">
-            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#eab308" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 16px;">
+            <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#eab308" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="flex-shrink: 0;">
               <line x1="9" y1="18" x2="15" y2="18"/>
               <line x1="10" y1="22" x2="14" y2="22"/>
               <path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/>
             </svg>
-            <h3 style="font-size: 20px; font-weight: bold; color: white; line-height: 24px;">Recomendações</h3>
+            <h3 style="font-size: 22px; font-weight: bold; color: white; line-height: 26px;">Recomendações</h3>
           </div>
           <div style="background-color: rgba(255, 255, 255, 0.1); padding: 20px; border-radius: 8px;">
-            <p style="color: rgba(255, 255, 255, 0.9); font-size: 14px; line-height: 1.6;">
+            <p style="color: rgba(255, 255, 255, 0.9); font-size: 15px; line-height: 1.6;">
               ${result.totalScore <= 40
                 ? "Priorize a criação de um planejamento estratégico básico, organize as finanças e defina processos essenciais para o funcionamento do negócio. Considere buscar orientação de um consultor para acelerar essa estruturação."
                 : result.totalScore <= 70
@@ -180,8 +180,8 @@ function ExportPDF({ result }: ExportPDFProps) {
 
         <div style="position: absolute; bottom: 20px; left: 20px; right: 20px;">
           <div style="border-top: 2px solid rgba(255, 255, 255, 0.1); padding-top: 12px; display: flex; justify-content: space-between; align-items: center;">
-            <p style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">© ${new Date().getFullYear()} DC ADVISORS. Todos os direitos reservados.</p>
-            <p style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">Relatório gerado em ${new Date().toLocaleDateString('pt-BR')}</p>
+            <p style="color: rgba(255, 255, 255, 0.8); font-size: 14px;">© ${new Date().getFullYear()} DC ADVISORS. Todos os direitos reservados.</p>
+            <p style="color: rgba(255, 255, 255, 0.8); font-size: 14px;">Relatório gerado em ${new Date().toLocaleDateString('pt-BR')}</p>
           </div>
         </div>
       </div>
