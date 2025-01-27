@@ -7,6 +7,7 @@ import type { DiagnosticResult, PillarScore } from '../types/diagnostic';
 function DiagnosticCard({ result, onDelete }: { result: DiagnosticResult; onDelete: (id: string) => void }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const maturityLevel = getMaturityLevel(Math.round(result.totalScore));
+  const { best, worst } = getBestAndWorstPillars(result.pillarScores);
 
   return (
     <div className="bg-zinc-800 rounded-lg p-6">
@@ -87,6 +88,38 @@ function DiagnosticCard({ result, onDelete }: { result: DiagnosticResult; onDele
                   <span className="text-gray-400">Forma Jurídica:</span>{' '}
                   <span className="text-white">{result.companyData.formaJuridica}</span>
                 </p>
+              </div>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-2 gap-6">
+            <div className="bg-zinc-800 rounded-lg p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <ThumbsUp size={24} className="text-green-500" />
+                <h3 className="text-lg font-medium text-white">Melhor Desempenho</h3>
+              </div>
+              <p className="text-2xl font-bold text-white mb-2">{best.pillarName}</p>
+              <p className="text-gray-400">{Math.round(best.score)} pontos</p>
+              <div className="w-full h-2 bg-zinc-700 rounded-full overflow-hidden mt-4">
+                <div
+                  className="h-full bg-green-500 rounded-full transition-all duration-300"
+                  style={{ width: `${best.percentageScore}%` }}
+                />
+              </div>
+            </div>
+
+            <div className="bg-zinc-800 rounded-lg p-6">
+              <div className="flex items-center gap-3 mb-4">
+                <ThumbsDown size={24} className="text-red-500" />
+                <h3 className="text-lg font-medium text-white">Precisa de Atenção</h3>
+              </div>
+              <p className="text-2xl font-bold text-white mb-2">{worst.pillarName}</p>
+              <p className="text-gray-400">{Math.round(worst.score)} pontos</p>
+              <div className="w-full h-2 bg-zinc-700 rounded-full overflow-hidden mt-4">
+                <div
+                  className="h-full bg-red-500 rounded-full transition-all duration-300"
+                  style={{ width: `${worst.percentageScore}%` }}
+                />
               </div>
             </div>
           </div>
