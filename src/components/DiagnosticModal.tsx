@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Stethoscope, X, ArrowRight, ArrowLeft } from 'lucide-react';
 import useLocalStorage from '../hooks/useLocalStorage';
 
@@ -88,6 +88,18 @@ function DiagnosticModal({ isOpen, onClose }: DiagnosticModalProps) {
 
   const [displayFaturamento, setDisplayFaturamento] = useState('');
 
+  const totalQuestions = useMemo(() => {
+    return pillars.reduce((total, pillar) => total + pillar.questions.length, 0);
+  }, [pillars]);
+
+  const answeredQuestions = useMemo(() => {
+    return Object.keys(answers).length;
+  }, [answers]);
+
+  const progressPercentage = useMemo(() => {
+    return totalQuestions > 0 ? (answeredQuestions / totalQuestions) * 100 : 0;
+  }, [totalQuestions, answeredQuestions]);
+
   if (!isOpen) return null;
 
   const handleChange = (field: keyof CompanyData, value: any) => {
@@ -131,13 +143,11 @@ function DiagnosticModal({ isOpen, onClose }: DiagnosticModalProps) {
 
   const handleAnswer = (questionId: string, answer: string) => {
     setAnswers(prev => {
-      // Se a resposta já está selecionada, remove ela
       if (prev[questionId] === answer) {
         const newAnswers = { ...prev };
         delete newAnswers[questionId];
         return newAnswers;
       }
-      // Caso contrário, atualiza a resposta
       return {
         ...prev,
         [questionId]: answer
@@ -171,8 +181,8 @@ function DiagnosticModal({ isOpen, onClose }: DiagnosticModalProps) {
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
       <div className="bg-zinc-900 rounded-lg w-full max-w-4xl">
         <div className="bg-zinc-800 p-6 border-b border-zinc-700 flex justify-between items-center rounded-t-lg">
-          <div className="flex items-center gap-4">
-            <Stethoscope size={32} className="text-blue-500" />
+          <div className="flex items-start gap-4">
+            <Stethoscope size={32} className="text-blue-500 mt-1" />
             <div>
               <h2 className="text-2xl font-bold text-white">Diagnóstico Financeiro Empresarial</h2>
               <p className="text-gray-400">
@@ -206,6 +216,23 @@ function DiagnosticModal({ isOpen, onClose }: DiagnosticModalProps) {
             </button>
           </div>
         </div>
+
+        {step === 'questions' && (
+          <div className="px-6 pt-4">
+            <div className="w-full h-4 bg-zinc-800 rounded-full overflow-hidden relative">
+              <div
+                className="h-full bg-blue-600 rounded-full transition-all duration-300 relative"
+                style={{ width: `${progressPercentage}%` }}
+              >
+                {progressPercentage > 0 && (
+                  <span className="absolute right-2 top-1/2 -translate-y-1/2 text-white text-[10px] font-medium">
+                    {Math.round(progressPercentage)}%
+                  </span>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="p-6">
           {step === 'form' ? (
