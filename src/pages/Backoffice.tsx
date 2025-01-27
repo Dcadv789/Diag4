@@ -1,9 +1,12 @@
 import React, { useState } from 'react';
-import { Plus, PlusCircle } from 'lucide-react';
+import { Plus, PlusCircle, Pencil } from 'lucide-react';
 
 interface Question {
   id: string;
   text: string;
+  points: number;
+  positiveAnswer: 'SIM' | 'NÃO';
+  answerType: 'BINARY' | 'TERNARY';
 }
 
 interface Pillar {
@@ -14,6 +17,8 @@ interface Pillar {
 
 function Backoffice() {
   const [pillars, setPillars] = useState<Pillar[]>([]);
+  const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
+  const [isNewQuestion, setIsNewQuestion] = useState(false);
 
   const addPillar = () => {
     const newPillar: Pillar = {
@@ -25,20 +30,47 @@ function Backoffice() {
   };
 
   const addQuestion = (pillarId: number) => {
+    const questionNumber = pillars.find(p => p.id === pillarId)?.questions.length ?? 0;
+    const newQuestion: Question = {
+      id: `${pillarId}.${questionNumber + 1}`,
+      text: `Pergunta ${pillarId}.${questionNumber + 1}`,
+      points: 1,
+      positiveAnswer: 'SIM',
+      answerType: 'BINARY'
+    };
+    setIsNewQuestion(true);
+    setEditingQuestion(newQuestion);
+  };
+
+  const editQuestion = (question: Question) => {
+    setIsNewQuestion(false);
+    setEditingQuestion(question);
+  };
+
+  const saveQuestion = () => {
+    if (!editingQuestion) return;
+
     setPillars(pillars.map(pillar => {
-      if (pillar.id === pillarId) {
-        const questionNumber = pillar.questions.length + 1;
-        const newQuestion: Question = {
-          id: `${pillar.id}.${questionNumber}`,
-          text: `Pergunta ${pillar.id}.${questionNumber}`
-        };
-        return {
-          ...pillar,
-          questions: [...pillar.questions, newQuestion]
-        };
+      if (pillar.id === parseInt(editingQuestion.id.split('.')[0])) {
+        if (isNewQuestion) {
+          return {
+            ...pillar,
+            questions: [...pillar.questions, editingQuestion]
+          };
+        } else {
+          return {
+            ...pillar,
+            questions: pillar.questions.map(q => 
+              q.id === editingQuestion.id ? editingQuestion : q
+            )
+          };
+        }
       }
       return pillar;
     }));
+
+    setEditingQuestion(null);
+    setIsNewQuestion(false);
   };
 
   return (
@@ -59,6 +91,101 @@ function Backoffice() {
             Adicionar Pilar
           </button>
         </div>
+
+        {editingQuestion && (
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+            <div className="bg-zinc-800 rounded-lg p-6 max-w-md w-full">
+              <h3 className="text-xl font-medium text-white mb-4">
+                {isNewQuestion ? 'Configurar Nova Pergunta' : 'Editar Pergunta'}
+              </h3>
+              
+              <div className="space-y-4">
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
+                    Texto da Pergunta
+                  </label>
+                  <input
+                    type="text"
+                    value={editingQuestion.text}
+                    onChange={(e) => setEditingQuestion({
+                      ...editingQuestion,
+                      text: e.target.value
+                    })}
+                    className="w-full bg-zinc-700 text-white rounded-lg px-3 py-2"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
+                    Pontuação da Pergunta
+                  </label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={editingQuestion.points}
+                    onChange={(e) => setEditingQuestion({
+                      ...editingQuestion,
+                      points: parseInt(e.target.value) || 1
+                    })}
+                    className="w-full bg-zinc-700 text-white rounded-lg px-3 py-2"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
+                    Resposta Positiva
+                  </label>
+                  <select
+                    value={editingQuestion.positiveAnswer}
+                    onChange={(e) => setEditingQuestion({
+                      ...editingQuestion,
+                      positiveAnswer: e.target.value as 'SIM' | 'NÃO'
+                    })}
+                    className="w-full bg-zinc-700 text-white rounded-lg px-3 py-2"
+                  >
+                    <option value="SIM">SIM</option>
+                    <option value="NÃO">NÃO</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-300 mb-1">
+                    Tipo de Resposta
+                  </label>
+                  <select
+                    value={editingQuestion.answerType}
+                    onChange={(e) => setEditingQuestion({
+                      ...editingQuestion,
+                      answerType: e.target.value as 'BINARY' | 'TERNARY'
+                    })}
+                    className="w-full bg-zinc-700 text-white rounded-lg px-3 py-2"
+                  >
+                    <option value="BINARY">Sim/Não</option>
+                    <option value="TERNARY">Sim/Não/Parcialmente</option>
+                  </select>
+                </div>
+
+                <div className="flex justify-end gap-3 mt-6">
+                  <button
+                    onClick={() => {
+                      setEditingQuestion(null);
+                      setIsNewQuestion(false);
+                    }}
+                    className="px-4 py-2 text-gray-300 hover:text-white transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    onClick={saveQuestion}
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg transition-colors"
+                  >
+                    Salvar
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="space-y-6">
           {pillars.map(pillar => (
@@ -81,14 +208,31 @@ function Backoffice() {
                   {pillar.questions.map(question => (
                     <div
                       key={question.id}
-                      className="bg-zinc-700 rounded-lg p-4 flex items-center"
+                      className="bg-zinc-700 rounded-lg p-4"
                     >
-                      <span className="text-gray-300 font-medium min-w-[60px]">
-                        {question.id}
-                      </span>
-                      <span className="text-white">
-                        {question.text}
-                      </span>
+                      <div className="flex items-start gap-4">
+                        <span className="text-gray-300 font-medium w-[60px] flex-shrink-0">
+                          {question.id}
+                        </span>
+                        <div className="flex-grow">
+                          <div className="flex items-start justify-between gap-4">
+                            <span className="text-white">
+                              {question.text}
+                            </span>
+                            <button
+                              onClick={() => editQuestion(question)}
+                              className="text-gray-400 hover:text-white transition-colors flex-shrink-0"
+                            >
+                              <Pencil size={16} />
+                            </button>
+                          </div>
+                          <div className="grid grid-cols-3 gap-4 mt-3 text-sm text-gray-400">
+                            <p>Pontos: {question.points}</p>
+                            <p>Resposta positiva: {question.positiveAnswer}</p>
+                            <p>Tipo: {question.answerType === 'BINARY' ? 'Sim/Não' : 'Sim/Não/Parcialmente'}</p>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   ))}
                 </div>
