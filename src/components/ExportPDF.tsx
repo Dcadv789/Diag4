@@ -26,18 +26,18 @@ function ExportPDF({ result }: ExportPDFProps) {
       <div style="background-color: #0030b9; padding: 20px; font-family: Arial, sans-serif; height: 100%; position: relative;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 40px;">
           <div style="flex-grow: 1; max-width: 70%;">
-            <h1 style="font-size: 24px; font-weight: bold; color: white;">Relatório Financeiro Empresarial</h1>
-            <p style="font-size: 14px; color: rgba(255, 255, 255, 0.8);">${new Date(result.date).toLocaleDateString('pt-BR')}</p>
+            <h1 style="font-size: 28px; font-weight: bold; color: white;">Relatório Financeiro Empresarial</h1>
+            <p style="font-size: 16px; color: rgba(255, 255, 255, 0.8);">${new Date(result.date).toLocaleDateString('pt-BR')}</p>
           </div>
           <div style="text-align: right; margin-left: 20px;">
-            <h2 style="font-size: 20px; font-weight: bold; color: white;">DC ADVISORS</h2>
+            <h2 style="font-size: 24px; font-weight: bold; color: white;">DC ADVISORS</h2>
           </div>
         </div>
 
         <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 40px;">
           <div style="background-color: rgba(255, 255, 255, 0.1); padding: 16px; border-radius: 8px;">
-            <h3 style="font-size: 16px; font-weight: bold; color: white; margin-bottom: 12px;">Informações da Empresa</h3>
-            <div style="display: grid; gap: 8px; font-size: 12px;">
+            <h3 style="font-size: 20px; font-weight: bold; color: white; margin-bottom: 12px;">Informações da Empresa</h3>
+            <div style="display: grid; gap: 8px; font-size: 14px;">
               <p style="color: rgba(255, 255, 255, 0.9);"><strong style="color: white;">Empresa:</strong> ${result.companyData.empresa}</p>
               <p style="color: rgba(255, 255, 255, 0.9);"><strong style="color: white;">CNPJ:</strong> ${result.companyData.cnpj}</p>
               <p style="color: rgba(255, 255, 255, 0.9);"><strong style="color: white;">Responsável:</strong> ${result.companyData.nome}</p>
@@ -46,8 +46,8 @@ function ExportPDF({ result }: ExportPDFProps) {
             </div>
           </div>
           <div style="background-color: rgba(255, 255, 255, 0.1); padding: 16px; border-radius: 8px;">
-            <h3 style="font-size: 16px; font-weight: bold; color: white; margin-bottom: 12px;">Dados do Negócio</h3>
-            <div style="display: grid; gap: 8px; font-size: 12px;">
+            <h3 style="font-size: 20px; font-weight: bold; color: white; margin-bottom: 12px;">Dados do Negócio</h3>
+            <div style="display: grid; gap: 8px; font-size: 14px;">
               <p style="color: rgba(255, 255, 255, 0.9);"><strong style="color: white;">Segmento:</strong> ${result.companyData.segmento}</p>
               <p style="color: rgba(255, 255, 255, 0.9);"><strong style="color: white;">Localização:</strong> ${result.companyData.localizacao}</p>
               <p style="color: rgba(255, 255, 255, 0.9);"><strong style="color: white;">Tempo de Atividade:</strong> ${result.companyData.tempoAtividade}</p>
@@ -57,63 +57,57 @@ function ExportPDF({ result }: ExportPDFProps) {
           </div>
         </div>
 
-        <div style="background-color: rgba(255, 255, 255, 0.1); padding: 16px; border-radius: 8px; margin-bottom: 40px;">
-          <h3 style="font-size: 16px; font-weight: bold; color: white; margin-bottom: 12px;">Pontuação Geral</h3>
-          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; text-align: center;">
-            <div style="background-color: rgba(255, 255, 255, 0.1); padding: 12px; border-radius: 8px;">
-              <p style="font-size: 20px; font-weight: bold; color: white; margin-bottom: 4px;">${Math.round(result.totalScore)}</p>
-              <p style="color: rgba(255, 255, 255, 0.8); font-size: 12px;">Pontuação Total</p>
-            </div>
-            <div style="background-color: rgba(255, 255, 255, 0.1); padding: 12px; border-radius: 8px;">
-              <p style="font-size: 20px; font-weight: bold; color: white; margin-bottom: 4px;">${Math.round(result.maxPossibleScore)}</p>
-              <p style="color: rgba(255, 255, 255, 0.8); font-size: 12px;">Pontuação Máxima</p>
-            </div>
-            <div style="background-color: rgba(255, 255, 255, 0.1); padding: 12px; border-radius: 8px;">
-              <p style="font-size: 20px; font-weight: bold; color: white; margin-bottom: 4px;">${Math.round(result.percentageScore)}%</p>
-              <p style="color: rgba(255, 255, 255, 0.8); font-size: 12px;">Percentual Atingido</p>
-            </div>
+        <h3 style="font-size: 20px; font-weight: bold; color: white; margin-bottom: 24px;">Pontuação Geral</h3>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; text-align: center; margin-bottom: 32px;">
+          <div style="background-color: rgba(255, 255, 255, 0.1); padding: 12px; border-radius: 8px;">
+            <p style="font-size: 24px; font-weight: bold; color: white; margin-bottom: 4px;">${Math.round(result.totalScore)}</p>
+            <p style="color: rgba(255, 255, 255, 0.8); font-size: 14px;">Pontuação Total</p>
+          </div>
+          <div style="background-color: rgba(255, 255, 255, 0.1); padding: 12px; border-radius: 8px;">
+            <p style="font-size: 24px; font-weight: bold; color: white; margin-bottom: 4px;">${Math.round(result.maxPossibleScore)}</p>
+            <p style="color: rgba(255, 255, 255, 0.8); font-size: 14px;">Pontuação Máxima</p>
+          </div>
+          <div style="background-color: rgba(255, 255, 255, 0.1); padding: 12px; border-radius: 8px;">
+            <p style="font-size: 24px; font-weight: bold; color: white; margin-bottom: 4px;">${Math.round(result.percentageScore)}%</p>
+            <p style="color: rgba(255, 255, 255, 0.8); font-size: 14px;">Percentual Atingido</p>
           </div>
         </div>
 
-        <div style="background-color: rgba(255, 255, 255, 0.1); padding: 16px; border-radius: 8px; margin-bottom: 40px;">
-          <h3 style="font-size: 16px; font-weight: bold; color: white; margin-bottom: 12px;">Pontuação por Pilar</h3>
-          <div style="display: grid; gap: 12px;">
-            ${result.pillarScores.map(pillar => `
-              <div style="background-color: rgba(255, 255, 255, 0.1); padding: 12px; border-radius: 8px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-                  <h4 style="font-size: 14px; font-weight: bold; color: white;">${pillar.pillarName}</h4>
-                  <p style="color: rgba(255, 255, 255, 0.8); font-size: 12px;">${Math.round(pillar.score)} / ${pillar.maxPossibleScore} pontos</p>
-                </div>
-                <div style="width: 100%; height: 6px; background-color: rgba(255, 255, 255, 0.1); border-radius: 3px; overflow: hidden;">
-                  <div style="width: ${pillar.percentageScore}%; height: 100%; background-color: #F47400;"></div>
-                </div>
+        <h3 style="font-size: 20px; font-weight: bold; color: white; margin-bottom: 24px;">Pontuação por Pilar</h3>
+        <div style="display: grid; gap: 12px; margin-bottom: 32px;">
+          ${result.pillarScores.map(pillar => `
+            <div style="background-color: rgba(255, 255, 255, 0.1); padding: 12px; border-radius: 8px;">
+              <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                <h4 style="font-size: 16px; font-weight: bold; color: white;">${pillar.pillarName}</h4>
+                <p style="color: rgba(255, 255, 255, 0.8); font-size: 14px;">${Math.round(pillar.score)} / ${pillar.maxPossibleScore} pontos</p>
               </div>
-            `).join('')}
-          </div>
+              <div style="width: 100%; height: 6px; background-color: rgba(255, 255, 255, 0.1); border-radius: 3px; overflow: hidden;">
+                <div style="width: ${pillar.percentageScore}%; height: 100%; background-color: #F47400;"></div>
+              </div>
+            </div>
+          `).join('')}
         </div>
 
-        <div style="background-color: rgba(255, 255, 255, 0.1); padding: 16px; border-radius: 8px;">
-          <h3 style="font-size: 16px; font-weight: bold; color: white; margin-bottom: 12px;">Maturidade do Negócio</h3>
-          <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
-            <div style="background-color: rgba(255, 255, 255, 0.1); padding: 12px; border-radius: 8px; ${result.totalScore <= 40 ? 'border: 2px solid #F47400;' : ''}">
-              <h4 style="font-size: 14px; font-weight: bold; color: white; margin-bottom: 4px;">Inicial</h4>
-              <p style="color: rgba(255, 255, 255, 0.8); font-size: 11px;">O negócio está começando ou ainda não possui processos bem definidos.</p>
-            </div>
-            <div style="background-color: rgba(255, 255, 255, 0.1); padding: 12px; border-radius: 8px; ${result.totalScore > 40 && result.totalScore <= 70 ? 'border: 2px solid #F47400;' : ''}">
-              <h4 style="font-size: 14px; font-weight: bold; color: white; margin-bottom: 4px;">Em Desenvolvimento</h4>
-              <p style="color: rgba(255, 255, 255, 0.8); font-size: 11px;">O negócio já possui alguns processos organizados, mas ainda enfrenta desafios.</p>
-            </div>
-            <div style="background-color: rgba(255, 255, 255, 0.1); padding: 12px; border-radius: 8px; ${result.totalScore > 70 ? 'border: 2px solid #F47400;' : ''}">
-              <h4 style="font-size: 14px; font-weight: bold; color: white; margin-bottom: 4px;">Consolidado</h4>
-              <p style="color: rgba(255, 255, 255, 0.8); font-size: 11px;">O negócio tem processos bem estabelecidos e está em fase de expansão.</p>
-            </div>
+        <h3 style="font-size: 20px; font-weight: bold; color: white; margin-bottom: 24px;">Maturidade do Negócio</h3>
+        <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px;">
+          <div style="background-color: rgba(255, 255, 255, 0.1); padding: 12px; border-radius: 8px; ${result.totalScore <= 40 ? 'border: 2px solid #F47400;' : ''}">
+            <h4 style="font-size: 16px; font-weight: bold; color: white; margin-bottom: 4px;">Inicial</h4>
+            <p style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">O negócio está começando ou ainda não possui processos bem definidos.</p>
+          </div>
+          <div style="background-color: rgba(255, 255, 255, 0.1); padding: 12px; border-radius: 8px; ${result.totalScore > 40 && result.totalScore <= 70 ? 'border: 2px solid #F47400;' : ''}">
+            <h4 style="font-size: 16px; font-weight: bold; color: white; margin-bottom: 4px;">Em Desenvolvimento</h4>
+            <p style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">O negócio já possui alguns processos organizados, mas ainda enfrenta desafios.</p>
+          </div>
+          <div style="background-color: rgba(255, 255, 255, 0.1); padding: 12px; border-radius: 8px; ${result.totalScore > 70 ? 'border: 2px solid #F47400;' : ''}">
+            <h4 style="font-size: 16px; font-weight: bold; color: white; margin-bottom: 4px;">Consolidado</h4>
+            <p style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">O negócio tem processos bem estabelecidos e está em fase de expansão.</p>
           </div>
         </div>
 
         <div style="position: absolute; bottom: 20px; left: 20px; right: 20px;">
           <div style="border-top: 2px solid rgba(255, 255, 255, 0.1); padding-top: 12px; display: flex; justify-content: space-between; align-items: center;">
-            <p style="color: rgba(255, 255, 255, 0.8); font-size: 11px;">© ${new Date().getFullYear()} DC ADVISORS. Todos os direitos reservados.</p>
-            <p style="color: rgba(255, 255, 255, 0.8); font-size: 11px;">Relatório gerado em ${new Date().toLocaleDateString('pt-BR')}</p>
+            <p style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">© ${new Date().getFullYear()} DC ADVISORS. Todos os direitos reservados.</p>
+            <p style="color: rgba(255, 255, 255, 0.8); font-size: 13px;">Relatório gerado em ${new Date().toLocaleDateString('pt-BR')}</p>
           </div>
         </div>
       </div>
