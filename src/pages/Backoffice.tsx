@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Plus, PlusCircle, Pencil } from 'lucide-react';
+import useLocalStorage from '../hooks/useLocalStorage';
 
 interface Question {
   id: string;
@@ -16,9 +17,11 @@ interface Pillar {
 }
 
 function Backoffice() {
-  const [pillars, setPillars] = useState<Pillar[]>([]);
+  const [pillars, setPillars] = useLocalStorage<Pillar[]>('pillars', []);
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
   const [isNewQuestion, setIsNewQuestion] = useState(false);
+  const [editingPillarId, setEditingPillarId] = useState<number | null>(null);
+  const [editingPillarName, setEditingPillarName] = useState('');
 
   const addPillar = () => {
     const newPillar: Pillar = {
@@ -27,6 +30,22 @@ function Backoffice() {
       questions: []
     };
     setPillars([...pillars, newPillar]);
+  };
+
+  const startEditingPillar = (pillar: Pillar) => {
+    setEditingPillarId(pillar.id);
+    setEditingPillarName(pillar.name);
+  };
+
+  const savePillarName = () => {
+    if (editingPillarId === null) return;
+    setPillars(pillars.map(pillar => 
+      pillar.id === editingPillarId 
+        ? { ...pillar, name: editingPillarName }
+        : pillar
+    ));
+    setEditingPillarId(null);
+    setEditingPillarName('');
   };
 
   const addQuestion = (pillarId: number) => {
@@ -191,9 +210,36 @@ function Backoffice() {
           {pillars.map(pillar => (
             <div key={pillar.id} className="bg-zinc-800 rounded-lg p-6">
               <div className="flex justify-between items-center mb-4">
-                <h3 className="text-xl font-medium text-white">
-                  {pillar.id}. {pillar.name}
-                </h3>
+                {editingPillarId === pillar.id ? (
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={editingPillarName}
+                      onChange={(e) => setEditingPillarName(e.target.value)}
+                      className="bg-zinc-700 text-white rounded-lg px-3 py-2 border border-zinc-600 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                      placeholder="Nome do pilar"
+                      autoFocus
+                    />
+                    <button
+                      onClick={savePillarName}
+                      className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-lg transition-colors"
+                    >
+                      Salvar
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-xl font-medium text-white">
+                      {pillar.id}. {pillar.name}
+                    </h3>
+                    <button
+                      onClick={() => startEditingPillar(pillar)}
+                      className="text-gray-400 hover:text-white transition-colors"
+                    >
+                      <Pencil size={16} />
+                    </button>
+                  </div>
+                )}
                 <button
                   onClick={() => addQuestion(pillar.id)}
                   className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg flex items-center gap-2 transition-colors"
