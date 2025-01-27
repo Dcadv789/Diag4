@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Building2, X, ArrowRight, ArrowLeft } from 'lucide-react';
+import { Stethoscope, X, ArrowRight, ArrowLeft } from 'lucide-react';
 import useLocalStorage from '../hooks/useLocalStorage';
 
 interface DiagnosticModalProps {
@@ -153,29 +153,30 @@ function DiagnosticModal({ isOpen, onClose }: DiagnosticModalProps) {
     }
   };
 
+  const goBackToForm = () => {
+    setStep('form');
+    setCurrentPillarIndex(0);
+  };
+
   return (
     <div className="fixed inset-0 bg-black flex items-center justify-center p-4 z-50">
       <div className="bg-zinc-900 rounded-lg w-full max-w-4xl">
         <div className="bg-zinc-800 p-6 border-b border-zinc-700 flex justify-between items-center rounded-t-lg">
-          <div className="flex items-center gap-4">
-            <Building2 size={32} className="text-blue-500" />
+          <div className="flex items-start gap-4">
+            <Stethoscope size={32} className="text-blue-500 mt-1" />
             <div>
-              <h2 className="text-2xl font-bold text-white">Diagnóstico Financeiro</h2>
+              <h2 className="text-2xl font-bold text-white">Diagnóstico Financeiro Empresarial</h2>
               <p className="text-gray-400">
                 {step === 'form' ? 'Preencha os dados da sua empresa para começar' : 'Responda as perguntas a seguir'}
               </p>
-              {step === 'questions' && (
-                <div className="mt-2 space-y-1">
-                  <div className="text-sm text-gray-300">
-                    <span className="font-medium">Nome:</span>
-                  </div>
-                  <div className="text-white">{companyData.nome}</div>
-                  <div className="text-sm text-gray-300">
-                    <span className="font-medium">Empresa:</span>
-                  </div>
-                  <div className="text-white">{companyData.empresa}</div>
+              <div className="mt-2 space-y-1">
+                <div className="text-sm text-gray-300">
+                  <span className="font-medium">Nome:</span> {companyData.nome || '------'}
                 </div>
-              )}
+                <div className="text-sm text-gray-300">
+                  <span className="font-medium">Empresa:</span> {companyData.empresa || '------'}
+                </div>
+              </div>
             </div>
           </div>
           <div className="flex items-center gap-4">
@@ -355,20 +356,27 @@ function DiagnosticModal({ isOpen, onClose }: DiagnosticModalProps) {
             <div>
               {currentPillar && (
                 <div>
-                  <h3 className="text-xl font-semibold text-white mb-6">
-                    {currentPillar.name}
-                  </h3>
+                  <div className="flex justify-between items-center mb-8">
+                    <h3 className="text-xl font-semibold text-white">
+                      {currentPillarIndex + 1}. {currentPillar.name}
+                    </h3>
+                    <div className="text-gray-400">
+                      Pilar {currentPillarIndex + 1} de {pillars.length}
+                    </div>
+                  </div>
                   <div className="space-y-6">
-                    {currentPillar.questions.map(question => (
-                      <div key={question.id} className="bg-zinc-800 p-4 rounded-lg">
-                        <p className="text-white mb-4">{question.text}</p>
+                    {currentPillar.questions.map((question, index) => (
+                      <div key={question.id} className="space-y-4">
+                        <p className="text-white">
+                          {currentPillarIndex + 1}.{index + 1}. {question.text}
+                        </p>
                         <div className="flex gap-4">
                           <button
                             onClick={() => handleAnswer(question.id, 'SIM')}
                             className={`px-4 py-2 rounded-lg transition-colors ${
                               answers[question.id] === 'SIM'
                                 ? 'bg-green-600 text-white'
-                                : 'bg-zinc-700 text-gray-300 hover:bg-zinc-600'
+                                : 'bg-zinc-800 text-gray-300 hover:bg-zinc-700'
                             }`}
                           >
                             Sim
@@ -379,7 +387,7 @@ function DiagnosticModal({ isOpen, onClose }: DiagnosticModalProps) {
                               className={`px-4 py-2 rounded-lg transition-colors ${
                                 answers[question.id] === 'PARCIALMENTE'
                                   ? 'bg-yellow-600 text-white'
-                                  : 'bg-zinc-700 text-gray-300 hover:bg-zinc-600'
+                                  : 'bg-zinc-800 text-gray-300 hover:bg-zinc-700'
                               }`}
                             >
                               Parcialmente
@@ -390,7 +398,7 @@ function DiagnosticModal({ isOpen, onClose }: DiagnosticModalProps) {
                             className={`px-4 py-2 rounded-lg transition-colors ${
                               answers[question.id] === 'NÃO'
                                 ? 'bg-red-600 text-white'
-                                : 'bg-zinc-700 text-gray-300 hover:bg-zinc-600'
+                                : 'bg-zinc-800 text-gray-300 hover:bg-zinc-700'
                             }`}
                           >
                             Não
@@ -408,20 +416,12 @@ function DiagnosticModal({ isOpen, onClose }: DiagnosticModalProps) {
             {step === 'questions' ? (
               <>
                 <button
-                  onClick={goToPreviousPillar}
-                  disabled={!canGoPrevious}
-                  className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-colors ${
-                    canGoPrevious
-                      ? 'text-gray-300 hover:text-white'
-                      : 'text-gray-600 cursor-not-allowed'
-                  }`}
+                  onClick={currentPillarIndex === 0 ? goBackToForm : goToPreviousPillar}
+                  className="flex items-center gap-2 px-4 py-2 rounded-lg transition-colors text-gray-300 hover:text-white"
                 >
                   <ArrowLeft size={20} />
-                  Anterior
+                  {currentPillarIndex === 0 ? 'Voltar para dados' : 'Anterior'}
                 </button>
-                <div className="text-gray-400">
-                  Pilar {currentPillarIndex + 1} de {pillars.length}
-                </div>
                 {canGoNext ? (
                   <button
                     onClick={goToNextPillar}
