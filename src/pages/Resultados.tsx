@@ -1,10 +1,12 @@
 import React, { useState } from 'react';
 import { BarChart3, TrendingUp, Award, ChevronDown, ChevronUp, Trash2, ThumbsUp, ThumbsDown } from 'lucide-react';
 import { useDiagnosticCalculation } from '../hooks/useDiagnosticCalculation';
+import ExportPDF from '../components/ExportPDF';
 import type { DiagnosticResult, PillarScore } from '../types/diagnostic';
 
 function DiagnosticCard({ result, onDelete }: { result: DiagnosticResult; onDelete: (id: string) => void }) {
   const [isExpanded, setIsExpanded] = useState(false);
+  const maturityLevel = getMaturityLevel(Math.round(result.totalScore));
 
   return (
     <div className="bg-zinc-800 rounded-lg p-6">
@@ -21,6 +23,7 @@ function DiagnosticCard({ result, onDelete }: { result: DiagnosticResult; onDele
             <p className="text-sm text-gray-400">Pontuação</p>
             <p className="text-xl font-bold text-white">{Math.round(result.totalScore)} pontos</p>
           </div>
+          <ExportPDF result={result} />
           <button
             onClick={() => onDelete(result.id)}
             className="p-2 hover:bg-zinc-700 rounded-lg transition-colors text-red-500 hover:text-red-400"
@@ -136,6 +139,42 @@ function DiagnosticCard({ result, onDelete }: { result: DiagnosticResult; onDele
               <p className="text-xs text-gray-400">Pontuação Final</p>
             </div>
           </div>
+
+          <div className="bg-zinc-800 rounded-lg p-6">
+            <h3 className="text-xl font-semibold text-white mb-6">Maturidade do Negócio</h3>
+            <div className="grid grid-cols-3 gap-6">
+              <div className={`p-6 rounded-lg border-2 ${
+                maturityLevel.level === 'Inicial' 
+                  ? 'border-blue-500 bg-blue-500/20' 
+                  : 'border-zinc-700 bg-zinc-700/50'
+              }`}>
+                <h4 className="text-lg font-medium text-white mb-2">Inicial</h4>
+                <p className="text-gray-400 text-sm">
+                  O negócio está começando ou ainda não possui processos bem definidos. Planejamento e estruturação são prioridades.
+                </p>
+              </div>
+              <div className={`p-6 rounded-lg border-2 ${
+                maturityLevel.level === 'Em Desenvolvimento'
+                  ? 'border-blue-500 bg-blue-500/20'
+                  : 'border-zinc-700 bg-zinc-700/50'
+              }`}>
+                <h4 className="text-lg font-medium text-white mb-2">Em Desenvolvimento</h4>
+                <p className="text-gray-400 text-sm">
+                  O negócio já possui alguns processos organizados, mas ainda enfrenta desafios para alcançar estabilidade e crescimento consistente.
+                </p>
+              </div>
+              <div className={`p-6 rounded-lg border-2 ${
+                maturityLevel.level === 'Consolidado'
+                  ? 'border-blue-500 bg-blue-500/20'
+                  : 'border-zinc-700 bg-zinc-700/50'
+              }`}>
+                <h4 className="text-lg font-medium text-white mb-2">Consolidado</h4>
+                <p className="text-gray-400 text-sm">
+                  O negócio tem processos bem estabelecidos, boa gestão e está em um estágio de expansão ou consolidação no mercado.
+                </p>
+              </div>
+            </div>
+          </div>
         </div>
       )}
     </div>
@@ -236,6 +275,7 @@ function Resultados() {
                     {Math.round(latestResult.totalScore)} pontos
                   </p>
                 </div>
+                <ExportPDF result={latestResult} />
                 <button
                   onClick={() => handleDelete(latestResult.id)}
                   className="p-2 hover:bg-zinc-800 rounded-lg transition-colors text-red-500 hover:text-red-400"
@@ -400,7 +440,7 @@ function Resultados() {
               <div className="grid grid-cols-3 gap-6">
                 <div className={`p-6 rounded-lg border-2 ${
                   maturityLevel.level === 'Inicial' 
-                    ? 'border-blue-500 bg-blue-500/10' 
+                    ? 'border-blue-500 bg-blue-500/20' 
                     : 'border-zinc-700 bg-zinc-700/50'
                 }`}>
                   <h4 className="text-lg font-medium text-white mb-2">Inicial</h4>
@@ -410,7 +450,7 @@ function Resultados() {
                 </div>
                 <div className={`p-6 rounded-lg border-2 ${
                   maturityLevel.level === 'Em Desenvolvimento'
-                    ? 'border-blue-500 bg-blue-500/10'
+                    ? 'border-blue-500 bg-blue-500/20'
                     : 'border-zinc-700 bg-zinc-700/50'
                 }`}>
                   <h4 className="text-lg font-medium text-white mb-2">Em Desenvolvimento</h4>
@@ -420,7 +460,7 @@ function Resultados() {
                 </div>
                 <div className={`p-6 rounded-lg border-2 ${
                   maturityLevel.level === 'Consolidado'
-                    ? 'border-blue-500 bg-blue-500/10'
+                    ? 'border-blue-500 bg-blue-500/20'
                     : 'border-zinc-700 bg-zinc-700/50'
                 }`}>
                   <h4 className="text-lg font-medium text-white mb-2">Consolidado</h4>
