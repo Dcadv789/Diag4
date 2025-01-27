@@ -1,37 +1,12 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState } from 'react';
 import { Stethoscope, X, ArrowRight, ArrowLeft } from 'lucide-react';
 import useLocalStorage from '../hooks/useLocalStorage';
+import { useDiagnosticCalculation } from '../hooks/useDiagnosticCalculation';
+import type { CompanyData, Pillar, Question } from '../types/diagnostic';
 
 interface DiagnosticModalProps {
   isOpen: boolean;
   onClose: () => void;
-}
-
-interface CompanyData {
-  nome: string;
-  empresa: string;
-  cnpj: string;
-  temSocios: string;
-  numeroFuncionarios: number;
-  faturamento: number;
-  segmento: string;
-  tempoAtividade: string;
-  localizacao: string;
-  formaJuridica: string;
-}
-
-interface Question {
-  id: string;
-  text: string;
-  points: number;
-  positiveAnswer: 'SIM' | 'NÃO';
-  answerType: 'BINARY' | 'TERNARY';
-}
-
-interface Pillar {
-  id: number;
-  name: string;
-  questions: Question[];
 }
 
 const SEGMENTOS = [
@@ -73,6 +48,7 @@ function DiagnosticModal({ isOpen, onClose }: DiagnosticModalProps) {
   const [currentPillarIndex, setCurrentPillarIndex] = useState(0);
   const [pillars] = useLocalStorage<Pillar[]>('pillars', []);
   const [answers, setAnswers] = useState<Record<string, string>>({});
+  const { saveDiagnosticResult } = useDiagnosticCalculation();
   const [companyData, setCompanyData] = useState<CompanyData>({
     nome: '',
     empresa: '',
@@ -88,15 +64,15 @@ function DiagnosticModal({ isOpen, onClose }: DiagnosticModalProps) {
 
   const [displayFaturamento, setDisplayFaturamento] = useState('');
 
-  const totalQuestions = useMemo(() => {
+  const totalQuestions = React.useMemo(() => {
     return pillars.reduce((total, pillar) => total + pillar.questions.length, 0);
   }, [pillars]);
 
-  const answeredQuestions = useMemo(() => {
+  const answeredQuestions = React.useMemo(() => {
     return Object.keys(answers).length;
   }, [answers]);
 
-  const progressPercentage = useMemo(() => {
+  const progressPercentage = React.useMemo(() => {
     return totalQuestions > 0 ? (answeredQuestions / totalQuestions) * 100 : 0;
   }, [totalQuestions, answeredQuestions]);
 
@@ -136,7 +112,8 @@ function DiagnosticModal({ isOpen, onClose }: DiagnosticModalProps) {
     if (step === 'form') {
       setStep('questions');
     } else {
-      console.log('Respostas:', answers);
+      const result = saveDiagnosticResult(companyData, answers, pillars);
+      console.log('Diagnóstico finalizado:', result);
       onClose();
     }
   };
