@@ -1,30 +1,12 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Upload } from 'lucide-react';
 import { useStorage } from '../hooks/useStorage';
-import { useFirestore } from '../hooks/useFirestore';
+import { useSettings } from '../hooks/useSettings';
 
 function LogoUpload() {
   const { uploadFile, deleteFile } = useStorage();
-  const { update } = useFirestore('settings');
-  const [logo, setLogo] = React.useState<string>('');
-  const [navbarLogo, setNavbarLogo] = React.useState<string>('');
-  const [loading, setLoading] = React.useState(false);
-
-  React.useEffect(() => {
-    loadLogos();
-  }, []);
-
-  const loadLogos = async () => {
-    try {
-      const settings = await useFirestore('settings').getById('logos');
-      if (settings) {
-        setLogo(settings.logo || '');
-        setNavbarLogo(settings.navbarLogo || '');
-      }
-    } catch (error) {
-      console.error('Erro ao carregar logos:', error);
-    }
-  };
+  const { settings, updateSettings } = useSettings();
+  const [loading, setLoading] = useState(false);
 
   const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -39,14 +21,12 @@ function LogoUpload() {
         const path = `logos/company-logo-${Date.now()}${file.name.substring(file.name.lastIndexOf('.'))}`;
         const downloadURL = await uploadFile(file, path);
         
-        if (logo) {
-          // Extract the old path from the URL
-          const oldPath = logo.split('?')[0].split('/o/')[1].replace(/%2F/g, '/');
+        if (settings.logo) {
+          const oldPath = settings.logo.split('?')[0].split('/o/')[1].replace(/%2F/g, '/');
           await deleteFile(decodeURIComponent(oldPath));
         }
 
-        setLogo(downloadURL);
-        await update('logos', { logo: downloadURL });
+        await updateSettings({ logo: downloadURL });
       } catch (error) {
         console.error('Erro ao fazer upload da logo:', error);
         alert('Erro ao fazer upload da logo. Tente novamente.');
@@ -69,14 +49,12 @@ function LogoUpload() {
         const path = `logos/navbar-logo-${Date.now()}${file.name.substring(file.name.lastIndexOf('.'))}`;
         const downloadURL = await uploadFile(file, path);
 
-        if (navbarLogo) {
-          // Extract the old path from the URL
-          const oldPath = navbarLogo.split('?')[0].split('/o/')[1].replace(/%2F/g, '/');
+        if (settings.navbarLogo) {
+          const oldPath = settings.navbarLogo.split('?')[0].split('/o/')[1].replace(/%2F/g, '/');
           await deleteFile(decodeURIComponent(oldPath));
         }
 
-        setNavbarLogo(downloadURL);
-        await update('logos', { navbarLogo: downloadURL });
+        await updateSettings({ navbarLogo: downloadURL });
       } catch (error) {
         console.error('Erro ao fazer upload da logo:', error);
         alert('Erro ao fazer upload da logo. Tente novamente.');
@@ -89,19 +67,15 @@ function LogoUpload() {
   const handleRemoveLogo = async (type: 'logo' | 'navbar') => {
     try {
       setLoading(true);
-      const currentLogo = type === 'logo' ? logo : navbarLogo;
+      const currentLogo = type === 'logo' ? settings.logo : settings.navbarLogo;
       
       if (currentLogo) {
         const oldPath = currentLogo.split('?')[0].split('/o/')[1].replace(/%2F/g, '/');
         await deleteFile(decodeURIComponent(oldPath));
         
-        if (type === 'logo') {
-          setLogo('');
-          await update('logos', { logo: '' });
-        } else {
-          setNavbarLogo('');
-          await update('logos', { navbarLogo: '' });
-        }
+        await updateSettings({
+          [type]: ''
+        });
       }
     } catch (error) {
       console.error('Erro ao remover logo:', error);
@@ -148,10 +122,10 @@ function LogoUpload() {
             </div>
             <div className="mt-4">
               <p className="text-sm font-medium text-gray-300 mb-2">Visualização:</p>
-              {logo ? (
+              {settings.logo ? (
                 <div className="relative group">
                   <img
-                    src={logo}
+                    src={settings.logo}
                     alt="Logo da empresa"
                     className="w-32 h-32 object-contain bg-zinc-800 rounded-lg p-4"
                   />
@@ -205,10 +179,10 @@ function LogoUpload() {
             </div>
             <div className="mt-4">
               <p className="text-sm font-medium text-gray-300 mb-2">Visualização:</p>
-              {navbarLogo ? (
+              {settings.navbarLogo ? (
                 <div className="relative group">
                   <img
-                    src={navbarLogo}
+                    src={settings.navbarLogo}
                     alt="Logo da navbar"
                     className="w-32 h-12 object-contain bg-zinc-800 rounded-lg p-4"
                   />

@@ -16,7 +16,7 @@ function Login() {
 
   useEffect(() => {
     if (user) {
-      navigate('/diagnostico');
+      navigate('/diagnostico', { replace: true });
     }
   }, [user, navigate]);
 
@@ -29,9 +29,7 @@ function Login() {
     try {
       await signIn(email, password);
       setSuccess('Login realizado com sucesso!');
-      setTimeout(() => {
-        navigate('/diagnostico');
-      }, 1000);
+      navigate('/diagnostico', { replace: true });
     } catch (error: any) {
       setError(error.message);
     } finally {
