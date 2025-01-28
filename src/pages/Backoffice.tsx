@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Plus, PlusCircle, Pencil } from 'lucide-react';
+import { Plus, PlusCircle, Pencil, Trash2 } from 'lucide-react';
 import LogoUpload from '../components/LogoUpload';
 import { supabase } from '../lib/supabase';
 
@@ -33,7 +33,6 @@ function Backoffice() {
 
   const fetchPillars = async () => {
     try {
-      // First, fetch all pillars
       const { data: pillarsData, error: pillarsError } = await supabase
         .from('pillars')
         .select('*')
@@ -41,7 +40,6 @@ function Backoffice() {
 
       if (pillarsError) throw pillarsError;
 
-      // Then, for each pillar, fetch its questions
       const pillarsWithQuestions = await Promise.all(
         pillarsData.map(async (pillar) => {
           const { data: questionsData, error: questionsError } = await supabase
@@ -103,6 +101,39 @@ function Backoffice() {
     }
   };
 
+  const deletePillar = async (pillarId: string) => {
+    try {
+      const { error } = await supabase
+        .from('pillars')
+        .delete()
+        .eq('id', pillarId);
+
+      if (error) throw error;
+
+      setPillars(pillars.filter(p => p.id !== pillarId));
+    } catch (error) {
+      console.error('Erro ao excluir pilar:', error);
+    }
+  };
+
+  const deleteQuestion = async (questionId: string) => {
+    try {
+      const { error } = await supabase
+        .from('questions')
+        .delete()
+        .eq('id', questionId);
+
+      if (error) throw error;
+
+      setPillars(pillars.map(pillar => ({
+        ...pillar,
+        questions: pillar.questions.filter(q => q.id !== questionId)
+      })));
+    } catch (error) {
+      console.error('Erro ao excluir pergunta:', error);
+    }
+  };
+
   const startEditingPillar = (pillar: Pillar) => {
     setEditingPillarId(pillar.id);
     setEditingPillarName(pillar.name);
@@ -138,7 +169,7 @@ function Backoffice() {
 
     const newOrder = pillar.questions.length + 1;
     const newQuestion: Question = {
-      id: pillarId,
+      id: '',
       text: `Pergunta ${pillar.order}.${newOrder}`,
       points: 1,
       positiveAnswer: 'SIM',
@@ -146,7 +177,7 @@ function Backoffice() {
       order: newOrder
     };
     setIsNewQuestion(true);
-    setEditingQuestion(newQuestion);
+    setEditingQuestion({ ...newQuestion, id: pillarId });
   };
 
   const editQuestion = (question: Question) => {
@@ -372,16 +403,24 @@ function Backoffice() {
                     </button>
                   </div>
                 ) : (
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-4">
                     <h3 className="text-xl font-medium text-white">
                       {pillar.order}. {pillar.name}
                     </h3>
-                    <button
-                      onClick={() => startEditingPillar(pillar)}
-                      className="text-gray-400 hover:text-white transition-colors"
-                    >
-                      <Pencil size={16} />
-                    </button>
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => startEditingPillar(pillar)}
+                        className="text-gray-400 hover:text-white transition-colors"
+                      >
+                        <Pencil size={16} />
+                      </button>
+                      <button
+                        onClick={() => deletePillar(pillar.id)}
+                        className="text-red-500 hover:text-red-400 transition-colors"
+                      >
+                        <Trash2 size={16} />
+                      </button>
+                    </div>
                   </div>
                 )}
                 <button
@@ -409,12 +448,20 @@ function Backoffice() {
                             <span className="text-white">
                               {question.text}
                             </span>
-                            <button
-                              onClick={() => editQuestion(question)}
-                              className="text-gray-400 hover:text-white transition-colors flex-shrink-0"
-                            >
-                              <Pencil size={16} />
-                            </button>
+                            <div className="flex items-center gap-2">
+                              <button
+                                onClick={() => editQuestion(question)}
+                                className="text-gray-400 hover:text-white transition-colors flex-shrink-0"
+                              >
+                                <Pencil size={16} />
+                              </button>
+                              <button
+                                onClick={() => deleteQuestion(question.id)}
+                                className="text-red-500 hover:text-red-400 transition-colors flex-shrink-0"
+                              >
+                                <Trash2 size={16} />
+                              </button>
+                            </div>
                           </div>
                           <div className="grid grid-cols-3 gap-4 mt-3 text-sm text-gray-400">
                             <p>Pontos: {question.points}</p>

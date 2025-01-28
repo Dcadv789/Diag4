@@ -1,12 +1,31 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Upload } from 'lucide-react';
 import { supabase } from '../lib/supabase';
-import useLocalStorage from '../hooks/useLocalStorage';
 
 function LogoUpload() {
-  const [logo, setLogo] = useLocalStorage<string>('company_logo', '');
-  const [navbarLogo, setNavbarLogo] = useLocalStorage<string>('navbar_logo', '');
+  const [logo, setLogo] = useState<string | null>(null);
+  const [navbarLogo, setNavbarLogo] = useState<string | null>(null);
   const [uploading, setUploading] = useState(false);
+
+  useEffect(() => {
+    fetchSettings();
+  }, []);
+
+  const fetchSettings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('settings')
+        .select('logo, navbar_logo')
+        .single();
+
+      if (error) throw error;
+
+      setLogo(data.logo);
+      setNavbarLogo(data.navbar_logo);
+    } catch (error) {
+      console.error('Erro ao carregar configurações:', error);
+    }
+  };
 
   const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>, isNavbar: boolean) => {
     try {
@@ -19,34 +38,20 @@ function LogoUpload() {
         return;
       }
 
-      // Gera um nome único para o arquivo
       const fileExt = file.name.split('.').pop();
       const fileName = `${isNavbar ? 'navbar' : 'main'}_${Date.now()}.${fileExt}`;
-      const filePath = `${fileName}`;
+      const filePath = `logos/${fileName}`;
 
-      // Upload do arquivo para o bucket 'logos'
-      const { error: uploadError, data } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from('logos')
-        .upload(filePath, file, {
-          cacheControl: '3600',
-          upsert: false
-        });
+        .upload(filePath, file);
 
       if (uploadError) throw uploadError;
 
-      // Obtém a URL pública do arquivo
       const { data: { publicUrl } } = supabase.storage
         .from('logos')
         .getPublicUrl(filePath);
 
-      // Atualiza o estado local
-      if (isNavbar) {
-        setNavbarLogo(publicUrl);
-      } else {
-        setLogo(publicUrl);
-      }
-
-      // Atualiza a tabela settings com a nova URL
       const { error: updateError } = await supabase
         .from('settings')
         .update({
@@ -55,6 +60,12 @@ function LogoUpload() {
         .eq('id', (await supabase.from('settings').select('id').single()).data?.id);
 
       if (updateError) throw updateError;
+
+      if (isNavbar) {
+        setNavbarLogo(publicUrl);
+      } else {
+        setLogo(publicUrl);
+      }
 
     } catch (error) {
       console.error('Erro ao fazer upload da logo:', error);
@@ -70,18 +81,15 @@ function LogoUpload() {
       const logoUrl = isNavbar ? navbarLogo : logo;
       if (!logoUrl) return;
 
-      // Extrai o nome do arquivo da URL
       const fileName = logoUrl.split('/').pop();
       if (!fileName) return;
 
-      // Remove o arquivo do storage
       const { error: removeError } = await supabase.storage
         .from('logos')
-        .remove([fileName]);
+        .remove([`logos/${fileName}`]);
 
       if (removeError) throw removeError;
 
-      // Atualiza a tabela settings
       const { error: updateError } = await supabase
         .from('settings')
         .update({
@@ -91,11 +99,10 @@ function LogoUpload() {
 
       if (updateError) throw updateError;
 
-      // Atualiza o estado local
       if (isNavbar) {
-        setNavbarLogo('');
+        setNavbarLogo(null);
       } else {
-        setLogo('');
+        setLogo(null);
       }
 
     } catch (error) {
