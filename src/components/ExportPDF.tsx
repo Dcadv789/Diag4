@@ -13,7 +13,7 @@ function ExportPDF({ result }: ExportPDFProps) {
     const pdf = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
-      format: [210, 460]
+      format: [210, 470]
     });
 
     const pageWidth = pdf.internal.pageSize.getWidth();
@@ -196,7 +196,7 @@ function ExportPDF({ result }: ExportPDFProps) {
           </div>
         </div>
 
-        <div style="padding: 16px 40px; border-top: 2px solid rgba(255, 255, 255, 0.1); margin-top: auto;">
+        <div style="padding: 16px 40px 32px; border-top: 2px solid rgba(255, 255, 255, 0.1); margin-top: auto;">
           <div style="display: flex; justify-content: space-between; align-items: center;">
             <p style="color: rgba(255, 255, 255, 0.8); font-size: 14px; margin: 0;">© ${new Date().getFullYear()} DC ADVISORS. Todos os direitos reservados.</p>
             <p style="color: rgba(255, 255, 255, 0.8); font-size: 14px; margin: 0;">Relatório gerado em ${new Date().toLocaleDateString('pt-BR')}</p>
