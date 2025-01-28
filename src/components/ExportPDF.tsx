@@ -13,7 +13,7 @@ function ExportPDF({ result }: ExportPDFProps) {
     const pdf = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
-      format: [210, 450]
+      format: [210, 460]
     });
 
     const pageWidth = pdf.internal.pageSize.getWidth();
@@ -24,14 +24,33 @@ function ExportPDF({ result }: ExportPDFProps) {
     content.style.height = `${pageHeight * 3.779527559}px`;
     content.innerHTML = `
       <div style="background-color: #0030b9; padding: 0; font-family: Arial, sans-serif; height: 100%; position: relative; display: flex; flex-direction: column;">
-        <div style="padding: 24px 40px 16px;">
-          <div style="display: flex; justify-content: space-between; align-items: center;">
-            <div style="flex-grow: 1; max-width: 70%;"></div>
-            <div style="text-align: right;"></div>
+        <div style="padding: 32px 40px; border-bottom: 2px solid rgba(255, 255, 255, 0.1);">
+          <div style="display: flex; justify-content: space-between; align-items: start;">
+            <div>
+              <h1 style="color: white; font-size: 28px; font-weight: bold; margin: 0 0 8px 0;">Diagnóstico Financeiro Empresarial</h1>
+              <p style="color: rgba(255, 255, 255, 0.8); font-size: 14px; margin: 0;">
+                Emitido em ${new Date().toLocaleDateString('pt-BR', {
+                  day: '2-digit',
+                  month: '2-digit',
+                  year: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit'
+                })}
+              </p>
+            </div>
+            <div style="text-align: right;">
+              <p style="text-sm text-gray-400 margin: 0;">powered by</p>
+              <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="color: white; font-weight: 600;">CompanyName</span>
+                <div style="width: 32px; height: 32px; background-color: #F47400; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                  <span style="color: white; font-weight: bold;">C</span>
+                </div>
+              </div>
+            </div>
           </div>
         </div>
 
-        <div style="flex: 1; padding: 0 40px 40px; display: flex; flex-direction: column;">
+        <div style="flex: 1; padding: 40px; display: flex; flex-direction: column;">
           <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 24px;">
             <div style="background-color: rgba(255, 255, 255, 0.1); padding: 20px; border-radius: 8px; display: flex; flex-direction: column; justify-content: center;">
               <h3 style="font-size: 20px; font-weight: bold; color: white; margin: 0 0 12px 0; transform: translateY(-8px);">Informações da Empresa</h3>
