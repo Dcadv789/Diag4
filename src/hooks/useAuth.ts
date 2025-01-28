@@ -1,10 +1,9 @@
 import { useState, useEffect } from 'react';
-import {
-  User,
+import { 
   signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
   signOut as firebaseSignOut,
-  onAuthStateChanged
+  onAuthStateChanged,
+  User
 } from 'firebase/auth';
 import { auth } from '../config/firebase';
 
@@ -25,17 +24,14 @@ export function useAuth() {
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
       return userCredential.user;
-    } catch (error) {
-      throw error;
-    }
-  };
-
-  const signUp = async (email: string, password: string) => {
-    try {
-      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
-      return userCredential.user;
-    } catch (error) {
-      throw error;
+    } catch (error: any) {
+      if (error.code === 'auth/invalid-credential') {
+        throw new Error('E-mail ou senha inválidos');
+      } else if (error.code === 'auth/too-many-requests') {
+        throw new Error('Muitas tentativas. Tente novamente mais tarde');
+      } else {
+        throw new Error('Erro ao fazer login. Tente novamente');
+      }
     }
   };
 
@@ -43,6 +39,7 @@ export function useAuth() {
     try {
       await firebaseSignOut(auth);
     } catch (error) {
+      console.error('Erro ao sair:', error);
       throw error;
     }
   };
@@ -51,7 +48,6 @@ export function useAuth() {
     user,
     loading,
     signIn,
-    signUp,
     signOut
   };
 }

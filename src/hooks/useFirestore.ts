@@ -1,16 +1,14 @@
-import {
+import { 
   collection,
   doc,
-  getDocs,
   getDoc,
+  getDocs,
   addDoc,
   updateDoc,
   deleteDoc,
   query,
-  where,
-  orderBy,
-  DocumentData,
-  QueryConstraint
+  QueryConstraint,
+  DocumentData
 } from 'firebase/firestore';
 import { db } from '../config/firebase';
 
@@ -23,6 +21,7 @@ export function useFirestore(collectionName: string) {
         ...doc.data()
       }));
     } catch (error) {
+      console.error('Erro ao buscar documentos:', error);
       throw error;
     }
   };
@@ -40,6 +39,7 @@ export function useFirestore(collectionName: string) {
       }
       return null;
     } catch (error) {
+      console.error('Erro ao buscar documento:', error);
       throw error;
     }
   };
@@ -49,6 +49,7 @@ export function useFirestore(collectionName: string) {
       const docRef = await addDoc(collection(db, collectionName), data);
       return docRef.id;
     } catch (error) {
+      console.error('Erro ao adicionar documento:', error);
       throw error;
     }
   };
@@ -58,6 +59,7 @@ export function useFirestore(collectionName: string) {
       const docRef = doc(db, collectionName, id);
       await updateDoc(docRef, data);
     } catch (error) {
+      console.error('Erro ao atualizar documento:', error);
       throw error;
     }
   };
@@ -67,6 +69,7 @@ export function useFirestore(collectionName: string) {
       const docRef = doc(db, collectionName, id);
       await deleteDoc(docRef);
     } catch (error) {
+      console.error('Erro ao remover documento:', error);
       throw error;
     }
   };
@@ -80,6 +83,7 @@ export function useFirestore(collectionName: string) {
         ...doc.data()
       }));
     } catch (error) {
+      console.error('Erro ao consultar documentos:', error);
       throw error;
     }
   };
@@ -90,8 +94,6 @@ export function useFirestore(collectionName: string) {
     add,
     update,
     remove,
-    queryDocuments,
-    where,
-    orderBy
+    queryDocuments
   };
 }
