@@ -61,6 +61,7 @@ function DiagnosticModal({ isOpen, onClose }: DiagnosticModalProps) {
     localizacao: '',
     formaJuridica: ''
   });
+  const [logo] = useLocalStorage<string>('company_logo', '');
 
   const [displayFaturamento, setDisplayFaturamento] = useState('');
 
@@ -176,15 +177,13 @@ function DiagnosticModal({ isOpen, onClose }: DiagnosticModalProps) {
             </div>
           </div>
           <div className="flex items-center gap-4">
-            <div className="text-right">
-              <p className="text-sm text-gray-400">powered by</p>
-              <div className="flex items-center gap-2">
-                <span className="text-white font-semibold">CompanyName</span>
-                <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                  <span className="text-white font-bold">C</span>
-                </div>
+            {logo ? (
+              <img src={logo} alt="Logo da empresa" className="w-32 h-auto object-contain" />
+            ) : (
+              <div className="w-32 h-16 bg-zinc-700 rounded-lg flex items-center justify-center">
+                <span className="text-zinc-500">Logo</span>
               </div>
-            </div>
+            )}
             <button
               onClick={onClose}
               className="text-gray-400 hover:text-white transition-colors"

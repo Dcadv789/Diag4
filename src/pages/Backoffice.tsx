@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Plus, PlusCircle, Pencil } from 'lucide-react';
 import useLocalStorage from '../hooks/useLocalStorage';
+import LogoUpload from '../components/LogoUpload';
 
 interface Question {
   id: string;
@@ -299,6 +300,8 @@ function Backoffice() {
           )}
         </div>
       </div>
+
+      <LogoUpload />
     </div>
   );
 }
