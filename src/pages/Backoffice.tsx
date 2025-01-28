@@ -32,38 +32,39 @@ function Backoffice() {
 
   const fetchPillars = async () => {
     try {
-      const { data, error } = await supabase
+      // First, fetch all pillars
+      const { data: pillarsData, error: pillarsError } = await supabase
         .from('pillars')
-        .select(`
-          id,
-          name,
-          order,
-          questions (
-            id,
-            text,
-            points,
-            positive_answer,
-            answer_type
-          )
-        `)
+        .select('*')
         .order('order');
 
-      if (error) throw error;
+      if (pillarsError) throw pillarsError;
 
-      const formattedPillars = data.map(pillar => ({
-        id: pillar.id,
-        name: pillar.name,
-        order: pillar.order,
-        questions: pillar.questions.map(q => ({
-          id: q.id,
-          text: q.text,
-          points: q.points,
-          positiveAnswer: q.positive_answer,
-          answerType: q.answer_type
-        }))
-      }));
+      // Then, for each pillar, fetch its questions
+      const pillarsWithQuestions = await Promise.all(
+        pillarsData.map(async (pillar) => {
+          const { data: questionsData, error: questionsError } = await supabase
+            .from('questions')
+            .select('*')
+            .eq('pillar_id', pillar.id)
+            .order('order');
 
-      setPillars(formattedPillars);
+          if (questionsError) throw questionsError;
+
+          return {
+            ...pillar,
+            questions: questionsData.map(q => ({
+              id: q.id,
+              text: q.text,
+              points: q.points,
+              positiveAnswer: q.positive_answer,
+              answerType: q.answer_type
+            }))
+          };
+        })
+      );
+
+      setPillars(pillarsWithQuestions);
       setLoading(false);
     } catch (error) {
       console.error('Erro ao buscar pilares:', error);
@@ -135,14 +136,14 @@ function Backoffice() {
 
     const questionNumber = pillar.questions.length + 1;
     const newQuestion: Question = {
-      id: `${pillarId}.${questionNumber}`,
-      text: `Pergunta ${pillarId}.${questionNumber}`,
+      id: `temp-${Date.now()}`,
+      text: `Pergunta ${questionNumber}`,
       points: 1,
       positiveAnswer: 'SIM',
       answerType: 'BINARY'
     };
     setIsNewQuestion(true);
-    setEditingQuestion(newQuestion);
+    setEditingQuestion({ ...newQuestion, id: pillarId });
   };
 
   const editQuestion = (question: Question) => {
@@ -154,13 +155,14 @@ function Backoffice() {
     if (!editingQuestion) return;
 
     try {
-      const pillarId = editingQuestion.id.split('.')[0];
+      const pillarId = isNewQuestion ? editingQuestion.id : editingQuestion.id.split('.')[0];
       const questionData = {
         pillar_id: pillarId,
         text: editingQuestion.text,
         points: editingQuestion.points,
         positive_answer: editingQuestion.positiveAnswer,
-        answer_type: editingQuestion.answerType
+        answer_type: editingQuestion.answerType,
+        order: isNewQuestion ? (pillars.find(p => p.id === pillarId)?.questions.length || 0) + 1 : parseInt(editingQuestion.id.split('.')[1])
       };
 
       if (isNewQuestion) {
