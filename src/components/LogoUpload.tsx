@@ -1,29 +1,72 @@
 import React from 'react';
 import { Upload } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 import useLocalStorage from '../hooks/useLocalStorage';
 
 function LogoUpload() {
   const [logo, setLogo] = useLocalStorage<string>('company_logo', '');
   const [navbarLogo, setNavbarLogo] = useLocalStorage<string>('navbar_logo', '');
 
-  const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>, isNavbar: boolean) => {
-    const file = event.target.files?.[0];
-    if (file) {
+  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>, isNavbar: boolean) => {
+    try {
+      const file = event.target.files?.[0];
+      if (!file) return;
+
       if (file.type !== 'image/svg+xml' && file.type !== 'image/png') {
         alert('Por favor, selecione apenas arquivos SVG ou PNG.');
         return;
       }
 
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const result = reader.result as string;
-        if (isNavbar) {
-          setNavbarLogo(result);
-        } else {
-          setLogo(result);
-        }
-      };
-      reader.readAsDataURL(file);
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${isNavbar ? 'navbar' : 'main'}_${Date.now()}.${fileExt}`;
+      const filePath = `logos/${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('logos')
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: false
+        });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('logos')
+        .getPublicUrl(filePath);
+
+      if (isNavbar) {
+        setNavbarLogo(publicUrl);
+      } else {
+        setLogo(publicUrl);
+      }
+    } catch (error) {
+      console.error('Erro ao fazer upload da logo:', error);
+      alert('Erro ao fazer upload da imagem. Por favor, tente novamente.');
+    }
+  };
+
+  const handleRemoveLogo = async (isNavbar: boolean) => {
+    try {
+      const logoUrl = isNavbar ? navbarLogo : logo;
+      if (!logoUrl) return;
+
+      const filePath = logoUrl.split('/').slice(-2).join('/');
+      if (!filePath) return;
+
+      const { error } = await supabase.storage
+        .from('logos')
+        .remove([filePath]);
+
+      if (error) throw error;
+
+      if (isNavbar) {
+        setNavbarLogo('');
+      } else {
+        setLogo('');
+      }
+    } catch (error) {
+      console.error('Erro ao remover logo:', error);
+      alert('Erro ao remover a imagem. Por favor, tente novamente.');
     }
   };
 
@@ -73,7 +116,7 @@ function LogoUpload() {
                     className="w-32 h-32 object-contain bg-zinc-800 rounded-lg p-4"
                   />
                   <button
-                    onClick={() => setLogo('')}
+                    onClick={() => handleRemoveLogo(false)}
                     className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
                   >
                     Remover
@@ -130,7 +173,7 @@ function LogoUpload() {
                     className="h-8 w-auto object-contain bg-zinc-800 rounded-lg p-2"
                   />
                   <button
-                    onClick={() => setNavbarLogo('')}
+                    onClick={() => handleRemoveLogo(true)}
                     className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
                   >
                     Remover
