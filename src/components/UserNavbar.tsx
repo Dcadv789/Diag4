@@ -17,6 +17,18 @@ function UserNavbar() {
     }
   };
 
+  if (auth?.loading) {
+    return (
+      <div className="animate-pulse">
+        <div className="h-10 w-48 bg-zinc-800 rounded-lg"></div>
+      </div>
+    );
+  }
+
+  if (!auth?.user) {
+    return null;
+  }
+
   return (
     <div className="relative">
       <button
@@ -25,11 +37,11 @@ function UserNavbar() {
       >
         <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center">
           <span className="text-sm font-medium text-white">
-            {auth?.user?.email?.[0].toUpperCase()}
+            {auth.user.email?.[0].toUpperCase()}
           </span>
         </div>
         <div className="text-left">
-          <p className="text-sm font-medium text-white">{auth?.user?.email}</p>
+          <p className="text-sm font-medium text-white">{auth.user.email}</p>
         </div>
         {isOpen ? (
           <ChevronUp className="text-gray-400" size={20} />

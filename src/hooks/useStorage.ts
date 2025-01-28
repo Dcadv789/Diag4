@@ -1,9 +1,14 @@
-import { useCallback } from 'react';
+import { useState, useCallback } from 'react';
 import { supabase } from '../lib/supabase';
 
 export function useStorage() {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
   const uploadLogo = useCallback(async (file: File, type: 'logo' | 'navbar_logo') => {
     try {
+      setLoading(true);
+      
       // Upload file to storage
       const fileExt = file.name.split('.').pop();
       const fileName = `${type}_${Math.random()}.${fileExt}`;
@@ -29,14 +34,18 @@ export function useStorage() {
       if (updateError) throw updateError;
 
       return publicUrl;
-    } catch (error) {
-      console.error('Error uploading logo:', error);
-      throw error;
+    } catch (err: any) {
+      setError(err.message);
+      throw err;
+    } finally {
+      setLoading(false);
     }
   }, []);
 
   const removeLogo = useCallback(async (type: 'logo' | 'navbar_logo') => {
     try {
+      setLoading(true);
+      
       // Get current logo URL
       const { data: settings } = await supabase
         .from('settings')
@@ -60,13 +69,17 @@ export function useStorage() {
         .eq('id', (await supabase.from('settings').select('id').single()).data?.id);
 
       if (updateError) throw updateError;
-    } catch (error) {
-      console.error('Error removing logo:', error);
-      throw error;
+    } catch (err: any) {
+      setError(err.message);
+      throw err;
+    } finally {
+      setLoading(false);
     }
   }, []);
 
   return {
+    loading,
+    error,
     uploadLogo,
     removeLogo
   };

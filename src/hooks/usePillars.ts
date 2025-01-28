@@ -1,112 +1,190 @@
-import { useState, useEffect } from 'react';
-import { collection, doc, getDocs, addDoc, updateDoc, deleteDoc, onSnapshot, query, orderBy } from 'firebase/firestore';
-import { db } from '../config/firebase';
-import type { Pillar } from '../types/diagnostic';
+import { useState, useEffect, useCallback } from 'react';
+import { supabase } from '../lib/supabase';
+import type { Pillar, Question } from '../types/diagnostic';
 
 export function usePillars() {
   const [pillars, setPillars] = useState<Pillar[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  useEffect(() => {
-    const q = query(collection(db, 'pillars'), orderBy('id', 'asc'));
-    const unsubscribe = onSnapshot(q, (snapshot) => {
-      try {
-        const pillarsData = snapshot.docs.map(doc => ({
-          ...doc.data() as Pillar,
-          firebaseId: doc.id
-        }));
-        setPillars(pillarsData);
-        setLoading(false);
-      } catch (err) {
-        console.error('Erro ao carregar pilares:', err);
-        setError('Erro ao carregar pilares');
-        setLoading(false);
-      }
-    });
+  const fetchPillars = useCallback(async () => {
+    try {
+      setLoading(true);
+      const { data, error } = await supabase
+        .from('pillars')
+        .select(`
+          id,
+          name,
+          order,
+          questions (
+            id,
+            text,
+            points,
+            positive_answer,
+            answer_type,
+            order
+          )
+        `)
+        .order('order');
 
-    return () => unsubscribe();
+      if (error) throw error;
+
+      setPillars(data?.map(pillar => ({
+        id: pillar.id,
+        name: pillar.name,
+        questions: pillar.questions.map(q => ({
+          id: q.id,
+          text: q.text,
+          points: q.points,
+          positiveAnswer: q.positive_answer,
+          answerType: q.answer_type,
+        }))
+      })) || []);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  const addPillar = async (pillar: Omit<Pillar, 'id'>) => {
+  useEffect(() => {
+    fetchPillars();
+  }, [fetchPillars]);
+
+  const addPillar = async (name: string) => {
     try {
-      const lastPillar = pillars[pillars.length - 1];
-      const newId = lastPillar ? lastPillar.id + 1 : 1;
-      
-      await addDoc(collection(db, 'pillars'), {
-        ...pillar,
-        id: newId,
-        questions: []
-      });
-    } catch (err) {
-      console.error('Erro ao adicionar pilar:', err);
-      throw new Error('Erro ao adicionar pilar');
+      setLoading(true);
+      const { data: lastPillar } = await supabase
+        .from('pillars')
+        .select('order')
+        .order('order', { ascending: false })
+        .limit(1)
+        .single();
+
+      const newOrder = (lastPillar?.order || 0) + 1;
+
+      const { error } = await supabase
+        .from('pillars')
+        .insert([{ name, order: newOrder }]);
+
+      if (error) throw error;
+      await fetchPillars();
+    } catch (err: any) {
+      setError(err.message);
+      throw err;
+    } finally {
+      setLoading(false);
     }
   };
 
   const updatePillar = async (pillarId: string, data: Partial<Pillar>) => {
     try {
-      const docRef = doc(db, 'pillars', pillarId);
-      await updateDoc(docRef, data);
-    } catch (err) {
-      console.error('Erro ao atualizar pilar:', err);
-      throw new Error('Erro ao atualizar pilar');
+      setLoading(true);
+      const { error } = await supabase
+        .from('pillars')
+        .update({ name: data.name })
+        .eq('id', pillarId);
+
+      if (error) throw error;
+      await fetchPillars();
+    } catch (err: any) {
+      setError(err.message);
+      throw err;
+    } finally {
+      setLoading(false);
     }
   };
 
   const deletePillar = async (pillarId: string) => {
     try {
-      await deleteDoc(doc(db, 'pillars', pillarId));
-    } catch (err) {
-      console.error('Erro ao excluir pilar:', err);
-      throw new Error('Erro ao excluir pilar');
+      setLoading(true);
+      const { error } = await supabase
+        .from('pillars')
+        .delete()
+        .eq('id', pillarId);
+
+      if (error) throw error;
+      await fetchPillars();
+    } catch (err: any) {
+      setError(err.message);
+      throw err;
+    } finally {
+      setLoading(false);
     }
   };
 
-  const addQuestion = async (pillarId: string, question: any) => {
+  const addQuestion = async (pillarId: string, question: Omit<Question, 'id'>) => {
     try {
-      const pillar = pillars.find(p => p.firebaseId === pillarId);
-      if (!pillar) throw new Error('Pilar não encontrado');
+      setLoading(true);
+      const { data: lastQuestion } = await supabase
+        .from('questions')
+        .select('order')
+        .eq('pillar_id', pillarId)
+        .order('order', { ascending: false })
+        .limit(1)
+        .single();
 
-      const docRef = doc(db, 'pillars', pillarId);
-      await updateDoc(docRef, {
-        questions: [...pillar.questions, question]
-      });
-    } catch (err) {
-      console.error('Erro ao adicionar pergunta:', err);
-      throw new Error('Erro ao adicionar pergunta');
+      const newOrder = (lastQuestion?.order || 0) + 1;
+
+      const { error } = await supabase
+        .from('questions')
+        .insert([{
+          pillar_id: pillarId,
+          text: question.text,
+          points: question.points,
+          positive_answer: question.positiveAnswer,
+          answer_type: question.answerType,
+          order: newOrder
+        }]);
+
+      if (error) throw error;
+      await fetchPillars();
+    } catch (err: any) {
+      setError(err.message);
+      throw err;
+    } finally {
+      setLoading(false);
     }
   };
 
-  const updateQuestion = async (pillarId: string, questionId: string, questionData: any) => {
+  const updateQuestion = async (questionId: string, data: Partial<Question>) => {
     try {
-      const pillar = pillars.find(p => p.firebaseId === pillarId);
-      if (!pillar) throw new Error('Pilar não encontrado');
+      setLoading(true);
+      const { error } = await supabase
+        .from('questions')
+        .update({
+          text: data.text,
+          points: data.points,
+          positive_answer: data.positiveAnswer,
+          answer_type: data.answerType
+        })
+        .eq('id', questionId);
 
-      const updatedQuestions = pillar.questions.map(q => 
-        q.id === questionId ? { ...q, ...questionData } : q
-      );
-
-      const docRef = doc(db, 'pillars', pillarId);
-      await updateDoc(docRef, { questions: updatedQuestions });
-    } catch (err) {
-      console.error('Erro ao atualizar pergunta:', err);
-      throw new Error('Erro ao atualizar pergunta');
+      if (error) throw error;
+      await fetchPillars();
+    } catch (err: any) {
+      setError(err.message);
+      throw err;
+    } finally {
+      setLoading(false);
     }
   };
 
-  const deleteQuestion = async (pillarId: string, questionId: string) => {
+  const deleteQuestion = async (questionId: string) => {
     try {
-      const pillar = pillars.find(p => p.firebaseId === pillarId);
-      if (!pillar) throw new Error('Pilar não encontrado');
+      setLoading(true);
+      const { error } = await supabase
+        .from('questions')
+        .delete()
+        .eq('id', questionId);
 
-      const updatedQuestions = pillar.questions.filter(q => q.id !== questionId);
-
-      const docRef = doc(db, 'pillars', pillarId);
-      await updateDoc(docRef, { questions: updatedQuestions });
-    } catch (err) {
-      console.error('Erro ao excluir pergunta:', err);
-      throw new Error('Erro ao excluir pergunta');
+      if (error) throw error;
+      await fetchPillars();
+    } catch (err: any) {
+      setError(err.message);
+      throw err;
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -119,6 +197,7 @@ export function usePillars() {
     deletePillar,
     addQuestion,
     updateQuestion,
-    deleteQuestion
+    deleteQuestion,
+    fetchPillars
   };
 }
