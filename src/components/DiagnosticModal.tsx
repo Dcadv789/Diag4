@@ -486,3 +486,5 @@ function DiagnosticModal({ isOpen, onClose }: DiagnosticModalProps) {
 }
 
 export default DiagnosticModal;
+
+export default DiagnosticModal
