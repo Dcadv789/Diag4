@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Settings, LogOut, ChevronDown, ChevronUp } from 'lucide-react';
 import useLocalStorage from '../hooks/useLocalStorage';
+import { AuthContext } from '../App';
 
 interface UserData {
   name: string;
@@ -12,6 +13,7 @@ interface UserData {
 function UserNavbar() {
   const [isOpen, setIsOpen] = useState(false);
   const navigate = useNavigate();
+  const auth = React.useContext(AuthContext);
   const [userData] = useLocalStorage<UserData>('user_data', {
     name: 'João Silva',
     email: 'joao.silva@empresa.com',
@@ -19,8 +21,8 @@ function UserNavbar() {
   });
 
   const handleLogout = () => {
-    // Implementar lógica de logout aqui
-    navigate('/');
+    auth?.logout();
+    navigate('/login');
   };
 
   return (
