@@ -11,7 +11,7 @@ function Login() {
   const [error, setError] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [logo] = useLocalStorage<string>('company_logo', '');
+  const [navbarLogo] = useLocalStorage<string>('navbar_logo', '');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -36,15 +36,15 @@ function Login() {
   return (
     <div className="min-h-screen bg-black flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          {logo ? (
+        <div className="text-center mb-4">
+          {navbarLogo ? (
             <img
-              src={logo}
+              src={navbarLogo}
               alt="Logo"
-              className="h-24 w-auto mx-auto object-contain"
+              className="h-20 w-auto mx-auto object-contain"
             />
           ) : (
-            <div className="w-full h-24 flex items-center justify-center">
+            <div className="w-full h-20 flex items-center justify-center">
               <Mail size={48} className="text-blue-500" />
             </div>
           )}
