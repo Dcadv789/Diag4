@@ -1,11 +1,20 @@
-import React, { useState } from 'react';
-import { BrowserRouter as Router, Routes, Route, NavLink, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, NavLink, useNavigate } from 'react-router-dom';
 import { Stethoscope, Building2, LineChart, Settings, LogOut, ChevronDown } from 'lucide-react';
 import Diagnostico from './pages/Diagnostico';
 import Backoffice from './pages/Backoffice';
 import Resultados from './pages/Resultados';
 import ProfileSettings from './pages/ProfileSettings';
+import Login from './pages/Login';
 import useLocalStorage from './hooks/useLocalStorage';
+
+interface AuthContextType {
+  isAuthenticated: boolean;
+  login: (email: string, password: string) => Promise<void>;
+  logout: () => void;
+}
+
+export const AuthContext = React.createContext<AuthContextType | null>(null);
 
 function UserMenu() {
   const [isOpen, setIsOpen] = useState(false);
@@ -14,10 +23,13 @@ function UserMenu() {
     name: 'User',
     email: 'user@example.com'
   });
+  const auth = React.useContext(AuthContext);
 
   const handleSignOut = () => {
-    // Add your sign out logic here
-    navigate('/');
+    if (auth) {
+      auth.logout();
+      navigate('/login');
+    }
   };
 
   return (
@@ -63,83 +75,133 @@ function UserMenu() {
   );
 }
 
-function App() {
-  const [navbarLogo] = useLocalStorage<string>('navbar_logo', '');
+function ProtectedRoute({ children }: { children: React.ReactNode }) {
+  const auth = React.useContext(AuthContext);
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!auth?.isAuthenticated) {
+      navigate('/login');
+    }
+  }, [auth?.isAuthenticated, navigate]);
+
+  if (!auth?.isAuthenticated) {
+    return null;
+  }
 
   return (
-    <Router>
-      <div className="min-h-screen bg-black">
-        <nav className="bg-zinc-900 px-8 py-3">
-          <div className="max-w-7xl mx-auto flex items-center justify-between">
-            <div className="w-[220px] pl-8">
-              {navbarLogo ? (
-                <img
-                  src={navbarLogo}
-                  alt="Logo"
-                  className="h-12 w-auto object-contain"
-                />
-              ) : (
-                <div className="w-12" />
-              )}
-            </div>
-            <div className="flex-1 flex justify-center space-x-8">
-              <NavLink
-                to="/diagnostico"
-                className={({ isActive }) =>
-                  `px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${
-                    isActive
-                      ? 'bg-blue-600 text-white'
-                      : 'text-gray-300 hover:bg-zinc-800 hover:text-white'
-                  }`
-                }
-              >
-                <Stethoscope size={18} />
-                Diagnóstico
-              </NavLink>
-              <NavLink
-                to="/backoffice"
-                className={({ isActive }) =>
-                  `px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${
-                    isActive
-                      ? 'bg-blue-600 text-white'
-                      : 'text-gray-300 hover:bg-zinc-800 hover:text-white'
-                  }`
-                }
-              >
-                <Building2 size={18} />
-                Backoffice
-              </NavLink>
-              <NavLink
-                to="/resultados"
-                className={({ isActive }) =>
-                  `px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${
-                    isActive
-                      ? 'bg-blue-600 text-white'
-                      : 'text-gray-300 hover:bg-zinc-800 hover:text-white'
-                  }`
-                }
-              >
-                <LineChart size={18} />
-                Resultados
-              </NavLink>
-            </div>
-            <div className="w-[280px] flex justify-end pr-8">
-              <UserMenu />
-            </div>
+    <>
+      <nav className="bg-zinc-900 px-8 py-3">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="w-[220px] pl-8">
+            <div className="w-12" />
           </div>
-        </nav>
+          <div className="flex-1 flex justify-center space-x-8">
+            <NavLink
+              to="/diagnostico"
+              className={({ isActive }) =>
+                `px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${
+                  isActive
+                    ? 'bg-blue-600 text-white'
+                    : 'text-gray-300 hover:bg-zinc-800 hover:text-white'
+                }`
+              }
+            >
+              <Stethoscope size={18} />
+              Diagnóstico
+            </NavLink>
+            <NavLink
+              to="/backoffice"
+              className={({ isActive }) =>
+                `px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${
+                  isActive
+                    ? 'bg-blue-600 text-white'
+                    : 'text-gray-300 hover:bg-zinc-800 hover:text-white'
+                }`
+              }
+            >
+              <Building2 size={18} />
+              Backoffice
+            </NavLink>
+            <NavLink
+              to="/resultados"
+              className={({ isActive }) =>
+                `px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${
+                  isActive
+                    ? 'bg-blue-600 text-white'
+                    : 'text-gray-300 hover:bg-zinc-800 hover:text-white'
+                }`
+              }
+            >
+              <LineChart size={18} />
+              Resultados
+            </NavLink>
+          </div>
+          <div className="w-[280px] flex justify-end pr-8">
+            <UserMenu />
+          </div>
+        </div>
+      </nav>
 
-        <main className="max-w-7xl mx-auto py-6 px-8">
+      <main className="max-w-7xl mx-auto py-6 px-8">
+        {children}
+      </main>
+    </>
+  );
+}
+
+function App() {
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  const login = async (email: string, password: string) => {
+    // Simulate API call
+    return new Promise<void>((resolve) => {
+      setTimeout(() => {
+        setIsAuthenticated(true);
+        resolve();
+      }, 1500);
+    });
+  };
+
+  const logout = () => {
+    setIsAuthenticated(false);
+  };
+
+  return (
+    <AuthContext.Provider value={{ isAuthenticated, login, logout }}>
+      <Router>
+        <div className="min-h-screen bg-black">
           <Routes>
-            <Route path="/" element={<Diagnostico />} />
-            <Route path="/diagnostico" element={<Diagnostico />} />
-            <Route path="/backoffice" element={<Backoffice />} />
-            <Route path="/resultados" element={<Resultados />} />
-            <Route path="/configuracoes" element={<ProfileSettings />} />
+            <Route path="/login" element={
+              isAuthenticated ? <Navigate to="/diagnostico" /> : <Login />
+            } />
+            <Route path="/" element={
+              <Navigate to={isAuthenticated ? "/diagnostico" : "/login"} />
+            } />
+            <Route path="/diagnostico" element={
+              <ProtectedRoute>
+                <Diagnostico />
+              </ProtectedRoute>
+            } />
+            <Route path="/backoffice" element={
+              <ProtectedRoute>
+                <Backoffice />
+              </ProtectedRoute>
+            } />
+            <Route path="/resultados" element={
+              <ProtectedRoute>
+                <Resultados />
+              </ProtectedRoute>
+            } />
+            <Route path="/configuracoes" element={
+              <ProtectedRoute>
+                <ProfileSettings />
+              </ProtectedRoute>
+            } />
           </Routes>
-        </main>
-      </div>
-    </Router>
+        </div>
+      </Router>
+    </AuthContext.Provider>
   );
 }
 

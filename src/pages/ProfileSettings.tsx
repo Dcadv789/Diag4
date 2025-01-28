@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Save, Upload, Pencil } from 'lucide-react';
+import { Save, Upload, Pencil, Loader2 } from 'lucide-react';
 import useLocalStorage from '../hooks/useLocalStorage';
 
 interface UserProfile {
@@ -20,23 +20,49 @@ function ProfileSettings() {
   });
   
   const [isEditing, setIsEditing] = useState(false);
+  const [isEditingPassword, setIsEditingPassword] = useState(false);
   const [formData, setFormData] = useState<UserProfile>(user);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [loading, setLoading] = useState(false);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setUser(formData);
-    setIsEditing(false);
+    setLoading(true);
+    
+    // Simulate API call
+    setTimeout(() => {
+      setUser(formData);
+      setIsEditing(false);
+      setLoading(false);
+    }, 1000);
   };
 
   const handlePasswordChange = (e: React.FormEvent) => {
     e.preventDefault();
-    // Add password change logic here
+    setLoading(true);
+
+    // Simulate API call
+    setTimeout(() => {
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      setIsEditingPassword(false);
+      setLoading(false);
+    }, 1000);
+  };
+
+  const handleCancel = () => {
+    setFormData(user);
+    setIsEditing(false);
+  };
+
+  const handleCancelPassword = () => {
     setCurrentPassword('');
     setNewPassword('');
     setConfirmPassword('');
+    setIsEditingPassword(false);
   };
 
   return (
@@ -79,13 +105,27 @@ function ProfileSettings() {
                   Editar
                 </button>
               ) : (
-                <button
-                  type="submit"
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg flex items-center gap-2 transition-colors"
-                >
-                  <Save size={20} />
-                  Salvar Alterações
-                </button>
+                <div className="flex gap-3">
+                  <button
+                    type="button"
+                    onClick={handleCancel}
+                    className="text-gray-400 hover:text-gray-300 transition-colors"
+                  >
+                    Cancelar
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg flex items-center gap-2 transition-colors disabled:opacity-50"
+                  >
+                    {loading ? (
+                      <Loader2 size={20} className="animate-spin" />
+                    ) : (
+                      <Save size={20} />
+                    )}
+                    Salvar Alterações
+                  </button>
+                </div>
               )}
             </div>
 
@@ -162,7 +202,41 @@ function ProfileSettings() {
 
           <div className="mt-12 pt-6 border-t border-zinc-800">
             <form onSubmit={handlePasswordChange} className="space-y-6">
-              <h3 className="text-lg font-medium text-white mb-6">Alterar Senha</h3>
+              <div className="flex justify-between items-center mb-6">
+                <h3 className="text-lg font-medium text-white">Alterar Senha</h3>
+                {!isEditingPassword ? (
+                  <button
+                    type="button"
+                    onClick={() => setIsEditingPassword(true)}
+                    className="flex items-center gap-2 text-blue-500 hover:text-blue-400 transition-colors"
+                  >
+                    <Pencil size={20} />
+                    Editar
+                  </button>
+                ) : (
+                  <div className="flex gap-3">
+                    <button
+                      type="button"
+                      onClick={handleCancelPassword}
+                      className="text-gray-400 hover:text-gray-300 transition-colors"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={loading || !currentPassword || !newPassword || !confirmPassword || newPassword !== confirmPassword}
+                      className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg flex items-center gap-2 transition-colors disabled:opacity-50"
+                    >
+                      {loading ? (
+                        <Loader2 size={20} className="animate-spin" />
+                      ) : (
+                        <Save size={20} />
+                      )}
+                      Salvar Senha
+                    </button>
+                  </div>
+                )}
+              </div>
               
               <div className="grid grid-cols-2 gap-6">
                 <div>
@@ -173,7 +247,8 @@ function ProfileSettings() {
                     type="password"
                     value={currentPassword}
                     onChange={(e) => setCurrentPassword(e.target.value)}
-                    className="w-full bg-zinc-800 text-white rounded-lg px-3 py-2 border border-zinc-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    disabled={!isEditingPassword}
+                    className="w-full bg-zinc-800 text-white rounded-lg px-3 py-2 border border-zinc-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                   />
                 </div>
 
@@ -185,7 +260,8 @@ function ProfileSettings() {
                     type="password"
                     value={newPassword}
                     onChange={(e) => setNewPassword(e.target.value)}
-                    className="w-full bg-zinc-800 text-white rounded-lg px-3 py-2 border border-zinc-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    disabled={!isEditingPassword}
+                    className="w-full bg-zinc-800 text-white rounded-lg px-3 py-2 border border-zinc-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                   />
                 </div>
 
@@ -197,19 +273,10 @@ function ProfileSettings() {
                     type="password"
                     value={confirmPassword}
                     onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full bg-zinc-800 text-white rounded-lg px-3 py-2 border border-zinc-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                    disabled={!isEditingPassword}
+                    className="w-full bg-zinc-800 text-white rounded-lg px-3 py-2 border border-zinc-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                   />
                 </div>
-              </div>
-
-              <div className="flex justify-end">
-                <button
-                  type="submit"
-                  className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg flex items-center gap-2 transition-colors"
-                >
-                  <Save size={20} />
-                  Alterar Senha
-                </button>
               </div>
             </form>
           </div>

@@ -1,83 +1,49 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, Loader2, AlertCircle, CheckCircle2 } from 'lucide-react';
-import { useAuth } from '../hooks/useAuth';
-import useLocalStorage from '../hooks/useLocalStorage';
+import { Mail, Lock, Loader2, AlertCircle } from 'lucide-react';
+import { AuthContext } from '../App';
 
 function Login() {
   const navigate = useNavigate();
-  const { signIn, user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [success, setSuccess] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [navbarLogo] = useLocalStorage<string>('navbar_logo', '');
-
-  useEffect(() => {
-    if (user) {
-      navigate('/diagnostico', { replace: true });
-    }
-  }, [user, navigate]);
+  const auth = React.useContext(AuthContext);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
-    setSuccess('');
     setLoading(true);
 
     try {
-      await signIn(email, password);
-      setSuccess('Login realizado com sucesso!');
-      navigate('/diagnostico', { replace: true });
-    } catch (error: any) {
-      setError(error.message);
+      await auth?.login(email, password);
+      navigate('/diagnostico');
+    } catch (error) {
+      setError('Erro ao fazer login. Verifique suas credenciais.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleForgotPassword = () => {
-    // Implement password reset functionality
-    console.log('Implement password reset');
-  };
-
   return (
     <div className="min-h-screen bg-black flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <div className="text-center mb-4">
-          {navbarLogo ? (
-            <img
-              src={navbarLogo}
-              alt="Logo"
-              className="h-14 w-auto mx-auto object-contain"
-            />
-          ) : (
-            <div className="w-full h-17 flex items-center justify-center">
-              <Mail size={40} className="text-blue-500" />
-            </div>
-          )}
+        <div className="text-center mb-8">
+          <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
+            <Mail size={32} className="text-white" />
+          </div>
+          <h1 className="text-3xl font-bold text-white">Bem-vindo</h1>
+          <p className="text-gray-400 mt-2">
+            Faça login para acessar sua conta
+          </p>
         </div>
 
         <div className="bg-zinc-900 rounded-lg p-8">
-          <div className="text-center mb-8">
-            <h1 className="text-2xl font-bold text-white">Bem-vindo de volta</h1>
-            <p className="text-gray-400 mt-2">
-              Faça login para acessar sua conta
-            </p>
-          </div>
-
           {error && (
-            <div className="mb-6 p-4 bg-red-500/20 text-red-400 rounded-lg text-sm flex items-center gap-2">
+            <div className="mb-6 p-4 bg-red-500/20 text-red-400 rounded-lg flex items-center gap-2">
               <AlertCircle size={20} />
               {error}
-            </div>
-          )}
-
-          {success && (
-            <div className="mb-6 p-4 bg-green-500/20 text-green-400 rounded-lg text-sm flex items-center gap-2">
-              <CheckCircle2 size={20} />
-              {success}
             </div>
           )}
 
@@ -120,10 +86,18 @@ function Login() {
               </div>
             </div>
 
-            <div className="flex items-center justify-end">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center">
+                <input
+                  type="checkbox"
+                  className="h-4 w-4 text-blue-600 focus:ring-blue-500 border-zinc-700 rounded bg-zinc-800"
+                />
+                <label className="ml-2 block text-sm text-gray-300">
+                  Lembrar-me
+                </label>
+              </div>
               <button
                 type="button"
-                onClick={handleForgotPassword}
                 className="text-sm text-blue-500 hover:text-blue-400 transition-colors"
               >
                 Esqueceu sua senha?
