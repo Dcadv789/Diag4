@@ -3,6 +3,7 @@ import { Stethoscope, X, ArrowRight, ArrowLeft } from 'lucide-react';
 import { useSettings } from '../hooks/useSettings';
 import { usePillars } from '../hooks/usePillars';
 import { useResults } from '../hooks/useResults';
+import { Particles } from './Particles';
 import type { CompanyData, Question } from '../types/diagnostic';
 
 interface DiagnosticModalProps {
@@ -197,8 +198,18 @@ function DiagnosticModal({ isOpen, onClose }: DiagnosticModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-zinc-900 rounded-lg w-full max-w-4xl">
+    <div className="fixed inset-0 flex items-center justify-center p-4 z-50">
+      <div className="absolute inset-0 bg-black">
+        <Particles
+          className="absolute inset-0"
+          quantity={100}
+          staticity={50}
+          ease={50}
+          size={0.8}
+          color="#ffffff"
+        />
+      </div>
+      <div className="bg-zinc-900 rounded-lg w-full max-w-4xl relative">
         <div className="bg-zinc-800 p-6 border-b border-zinc-700 flex justify-between items-center rounded-t-lg">
           <div className="flex items-start gap-4">
             <Stethoscope size={32} className="text-blue-500 mt-1" />
