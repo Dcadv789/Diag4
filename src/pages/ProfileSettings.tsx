@@ -1,27 +1,42 @@
 import React, { useState } from 'react';
-import { Save, Upload } from 'lucide-react';
+import { Save, Upload, Pencil } from 'lucide-react';
 import useLocalStorage from '../hooks/useLocalStorage';
 
+interface UserProfile {
+  name: string;
+  email: string;
+  fullName: string;
+  position: string;
+  phone: string;
+}
+
 function ProfileSettings() {
-  const [user, setUser] = useLocalStorage('user', {
+  const [user, setUser] = useLocalStorage<UserProfile>('user', {
     name: 'User',
-    email: 'user@example.com'
+    email: 'user@example.com',
+    fullName: '',
+    position: '',
+    phone: ''
   });
   
-  const [name, setName] = useState(user.name);
-  const [email, setEmail] = useState(user.email);
+  const [isEditing, setIsEditing] = useState(false);
+  const [formData, setFormData] = useState<UserProfile>(user);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    setUser({
-      ...user,
-      name,
-      email
-    });
-    // Add password change logic here if needed
+    setUser(formData);
+    setIsEditing(false);
+  };
+
+  const handlePasswordChange = (e: React.FormEvent) => {
+    e.preventDefault();
+    // Add password change logic here
+    setCurrentPassword('');
+    setNewPassword('');
+    setConfirmPassword('');
   };
 
   return (
@@ -37,7 +52,7 @@ function ProfileSettings() {
             <div className="flex items-center gap-6">
               <div className="w-24 h-24 rounded-full bg-blue-600 flex items-center justify-center">
                 <span className="text-4xl font-medium text-white">
-                  {name[0].toUpperCase()}
+                  {formData.name[0].toUpperCase()}
                 </span>
               </div>
               <div>
@@ -52,34 +67,104 @@ function ProfileSettings() {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">
-                Nome
-              </label>
-              <input
-                type="text"
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                className="w-full bg-zinc-800 text-white rounded-lg px-3 py-2 border border-zinc-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-              />
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="text-lg font-medium text-white">Informações Pessoais</h3>
+              {!isEditing ? (
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(true)}
+                  className="flex items-center gap-2 text-blue-500 hover:text-blue-400 transition-colors"
+                >
+                  <Pencil size={20} />
+                  Editar
+                </button>
+              ) : (
+                <button
+                  type="submit"
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg flex items-center gap-2 transition-colors"
+                >
+                  <Save size={20} />
+                  Salvar Alterações
+                </button>
+              )}
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-300 mb-1">
-                E-mail
-              </label>
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                className="w-full bg-zinc-800 text-white rounded-lg px-3 py-2 border border-zinc-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-              />
-            </div>
+            <div className="grid grid-cols-2 gap-6">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">
+                  Nome de Usuário
+                </label>
+                <input
+                  type="text"
+                  value={formData.name}
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  disabled={!isEditing}
+                  className="w-full bg-zinc-800 text-white rounded-lg px-3 py-2 border border-zinc-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                />
+              </div>
 
-            <div className="pt-6 border-t border-zinc-800">
-              <h3 className="text-lg font-medium text-white mb-4">Alterar Senha</h3>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">
+                  E-mail
+                </label>
+                <input
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  disabled={!isEditing}
+                  className="w-full bg-zinc-800 text-white rounded-lg px-3 py-2 border border-zinc-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">
+                  Nome Completo
+                </label>
+                <input
+                  type="text"
+                  value={formData.fullName}
+                  onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                  disabled={!isEditing}
+                  className="w-full bg-zinc-800 text-white rounded-lg px-3 py-2 border border-zinc-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  placeholder="Digite seu nome completo"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">
+                  Cargo
+                </label>
+                <input
+                  type="text"
+                  value={formData.position}
+                  onChange={(e) => setFormData({ ...formData, position: e.target.value })}
+                  disabled={!isEditing}
+                  className="w-full bg-zinc-800 text-white rounded-lg px-3 py-2 border border-zinc-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  placeholder="Digite seu cargo"
+                />
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">
+                  Telefone
+                </label>
+                <input
+                  type="tel"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  disabled={!isEditing}
+                  className="w-full bg-zinc-800 text-white rounded-lg px-3 py-2 border border-zinc-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
+                  placeholder="(00) 00000-0000"
+                />
+              </div>
+            </div>
+          </form>
+
+          <div className="mt-12 pt-6 border-t border-zinc-800">
+            <form onSubmit={handlePasswordChange} className="space-y-6">
+              <h3 className="text-lg font-medium text-white mb-6">Alterar Senha</h3>
               
-              <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-6">
                 <div>
                   <label className="block text-sm font-medium text-gray-300 mb-1">
                     Senha Atual
@@ -116,18 +201,18 @@ function ProfileSettings() {
                   />
                 </div>
               </div>
-            </div>
 
-            <div className="flex justify-end pt-6">
-              <button
-                type="submit"
-                className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg flex items-center gap-2 transition-colors"
-              >
-                <Save size={20} />
-                Salvar Alterações
-              </button>
-            </div>
-          </form>
+              <div className="flex justify-end">
+                <button
+                  type="submit"
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg flex items-center gap-2 transition-colors"
+                >
+                  <Save size={20} />
+                  Alterar Senha
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       </div>
     </div>

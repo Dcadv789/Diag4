@@ -123,7 +123,7 @@ function App() {
                 Resultados
               </NavLink>
             </div>
-            <div className="w-[220px] flex justify-end">
+            <div className="w-[280px] flex justify-end pr-8">
               <UserMenu />
             </div>
           </div>
