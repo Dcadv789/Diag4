@@ -178,7 +178,11 @@ function DiagnosticModal({ isOpen, onClose }: DiagnosticModalProps) {
           </div>
           <div className="flex items-center gap-4">
             {logo ? (
-              <img src={logo} alt="Logo da empresa" className="w-32 h-auto object-contain" />
+              <img
+                src={logo}
+                alt="Logo da empresa"
+                className="w-45 h-24 object-contain"
+              />
             ) : (
               <div className="w-32 h-16 bg-zinc-700 rounded-lg flex items-center justify-center">
                 <span className="text-zinc-500">Logo</span>

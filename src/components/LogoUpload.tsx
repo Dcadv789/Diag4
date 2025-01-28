@@ -43,9 +43,17 @@ function LogoUpload() {
               className="hidden"
             />
           </div>
-          <p className="text-sm text-gray-400">
-            Formatos aceitos: SVG, PNG
-          </p>
+          <div className="space-y-2">
+            <p className="text-sm text-gray-400">
+              Formatos aceitos: SVG, PNG
+            </p>
+            <p className="text-sm text-gray-400">
+              Tamanho recomendado: 250x132 pixels
+            </p>
+            <p className="text-sm text-gray-400">
+              Tamanho máximo: 530x280 pixels
+            </p>
+          </div>
         </div>
         <div>
           <p className="text-sm font-medium text-gray-300 mb-2">Visualização:</p>
