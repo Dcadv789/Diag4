@@ -60,7 +60,7 @@ function ExportPDF({ result }: ExportPDFProps) {
               <path d="M3 3v18h18"/>
               <path d="m19 9-5 5-4-4-3 3"/>
             </svg>
-            <h3 style="font-size: 22px; font-weight: bold; color: white; margin: 0; transform: translateY(-4px);">Pontuação Geral</h3>
+            <h3 style="font-size: 22px; font-weight: bold; color: white; margin: 0; transform: translateY(-10px);">Pontuação Geral</h3>
           </div>
 
           <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; text-align: center; margin-bottom: 24px;">
@@ -85,7 +85,7 @@ function ExportPDF({ result }: ExportPDFProps) {
                   <path d="M7 10l5 5 5-5"/>
                   <path d="M2 20h20"/>
                 </svg>
-                <h4 style="font-size: 20px; font-weight: bold; color: white; margin: 0; transform: translateY(-4px);">Melhor Desempenho</h4>
+                <h4 style="font-size: 18px; font-weight: bold; color: white; margin: 0; transform: translateY(-8px);">Melhor Desempenho</h4>
               </div>
               <p style="font-size: 22px; font-weight: bold; color: white; margin: 0 0 8px 0; transform: translateY(-8px);">${result.pillarScores[0].pillarName}</p>
               <p style="color: rgba(255, 255, 255, 0.8); font-size: 15px; margin: 0; transform: translateY(-8px);">${Math.round(result.pillarScores[0].score)} pontos</p>
@@ -96,7 +96,7 @@ function ExportPDF({ result }: ExportPDFProps) {
                   <path d="M7 14l5-5 5 5"/>
                   <path d="M2 20h20"/>
                 </svg>
-                <h4 style="font-size: 20px; font-weight: bold; color: white; margin: 0; transform: translateY(-4px);">Precisa de Atenção</h4>
+                <h4 style="font-size: 18px; font-weight: bold; color: white; margin: 0; transform: translateY(-8px);">Precisa de Atenção</h4>
               </div>
               <p style="font-size: 22px; font-weight: bold; color: white; margin: 0 0 8px 0; transform: translateY(-8px);">${result.pillarScores[result.pillarScores.length - 1].pillarName}</p>
               <p style="color: rgba(255, 255, 255, 0.8); font-size: 15px; margin: 0; transform: translateY(-8px);">${Math.round(result.pillarScores[result.pillarScores.length - 1].score)} pontos</p>
@@ -110,7 +110,7 @@ function ExportPDF({ result }: ExportPDFProps) {
               <path d="M22 21v-2a4 4 0 0 0-3-3.87"/>
               <path d="M16 3.13a4 4 0 0 1 0 7.75"/>
             </svg>
-            <h3 style="font-size: 22px; font-weight: bold; color: white; margin: 0; transform: translateY(-4px);">Pontuação por Pilar</h3>
+            <h3 style="font-size: 22px; font-weight: bold; color: white; margin: 0; transform: translateY(-12px);">Pontuação por Pilar</h3>
           </div>
 
           <div style="display: grid; gap: 12px; margin-bottom: 24px;">
@@ -137,7 +137,7 @@ function ExportPDF({ result }: ExportPDFProps) {
               <path d="M17.06 21.92v-3"/>
               <path d="M20.41 18.99h-3.35"/>
             </svg>
-            <h3 style="font-size: 22px; font-weight: bold; color: white; margin: 0; transform: translateY(-4px);">Maturidade do Negócio</h3>
+            <h3 style="font-size: 22px; font-weight: bold; color: white; margin: 0; transform: translateY(-6px);">Maturidade do Negócio</h3>
           </div>
 
           <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-bottom: 24px;">
@@ -162,7 +162,7 @@ function ExportPDF({ result }: ExportPDFProps) {
                 <line x1="10" y1="22" x2="14" y2="22"/>
                 <path d="M15.09 14c.18-.98.65-1.74 1.41-2.5A4.65 4.65 0 0 0 18 8 6 6 0 0 0 6 8c0 1 .23 2.23 1.5 3.5A4.61 4.61 0 0 1 8.91 14"/>
               </svg>
-              <h3 style="font-size: 22px; font-weight: bold; color: white; margin: 0; transform: translateY(-4px);">Recomendações</h3>
+              <h3 style="font-size: 22px; font-weight: bold; color: white; margin: 0; transform: translateY(-10px);">Recomendações</h3>
             </div>
             <div style="background-color: rgba(255, 255, 255, 0.1); padding: 20px; border-radius: 8px;">
               <p style="color: rgba(255, 255, 255, 0.9); font-size: 15px; line-height: 1.6; margin: 0; transform: translateY(-8px);">
