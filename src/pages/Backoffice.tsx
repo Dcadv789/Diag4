@@ -9,6 +9,7 @@ interface Question {
   points: number;
   positiveAnswer: 'SIM' | 'NÃO';
   answerType: 'BINARY' | 'TERNARY';
+  order: number;
 }
 
 interface Pillar {
@@ -58,7 +59,8 @@ function Backoffice() {
               text: q.text,
               points: q.points,
               positiveAnswer: q.positive_answer,
-              answerType: q.answer_type
+              answerType: q.answer_type,
+              order: q.order
             }))
           };
         })
@@ -134,16 +136,17 @@ function Backoffice() {
     const pillar = pillars.find(p => p.id === pillarId);
     if (!pillar) return;
 
-    const questionNumber = pillar.questions.length + 1;
+    const newOrder = pillar.questions.length + 1;
     const newQuestion: Question = {
-      id: `temp-${Date.now()}`,
-      text: `Pergunta ${questionNumber}`,
+      id: pillarId,
+      text: `Pergunta ${pillar.order}.${newOrder}`,
       points: 1,
       positiveAnswer: 'SIM',
-      answerType: 'BINARY'
+      answerType: 'BINARY',
+      order: newOrder
     };
     setIsNewQuestion(true);
-    setEditingQuestion({ ...newQuestion, id: pillarId });
+    setEditingQuestion(newQuestion);
   };
 
   const editQuestion = (question: Question) => {
@@ -156,13 +159,16 @@ function Backoffice() {
 
     try {
       const pillarId = isNewQuestion ? editingQuestion.id : editingQuestion.id.split('.')[0];
+      const pillar = pillars.find(p => p.id === pillarId);
+      if (!pillar) return;
+
       const questionData = {
         pillar_id: pillarId,
         text: editingQuestion.text,
         points: editingQuestion.points,
         positive_answer: editingQuestion.positiveAnswer,
         answer_type: editingQuestion.answerType,
-        order: isNewQuestion ? (pillars.find(p => p.id === pillarId)?.questions.length || 0) + 1 : parseInt(editingQuestion.id.split('.')[1])
+        order: editingQuestion.order
       };
 
       if (isNewQuestion) {
@@ -174,20 +180,21 @@ function Backoffice() {
 
         if (error) throw error;
 
-        setPillars(pillars.map(pillar => {
-          if (pillar.id === pillarId) {
+        setPillars(pillars.map(p => {
+          if (p.id === pillarId) {
             return {
-              ...pillar,
-              questions: [...pillar.questions, {
+              ...p,
+              questions: [...p.questions, {
                 id: data.id,
                 text: data.text,
                 points: data.points,
                 positiveAnswer: data.positive_answer,
-                answerType: data.answer_type
+                answerType: data.answer_type,
+                order: data.order
               }]
             };
           }
-          return pillar;
+          return p;
         }));
       } else {
         const { error } = await supabase
@@ -197,16 +204,16 @@ function Backoffice() {
 
         if (error) throw error;
 
-        setPillars(pillars.map(pillar => {
-          if (pillar.id === pillarId) {
+        setPillars(pillars.map(p => {
+          if (p.id === pillarId) {
             return {
-              ...pillar,
-              questions: pillar.questions.map(q =>
+              ...p,
+              questions: p.questions.map(q =>
                 q.id === editingQuestion.id ? editingQuestion : q
               )
             };
           }
-          return pillar;
+          return p;
         }));
       }
 
@@ -215,6 +222,10 @@ function Backoffice() {
     } catch (error) {
       console.error('Erro ao salvar pergunta:', error);
     }
+  };
+
+  const getQuestionDisplayId = (pillar: Pillar, question: Question) => {
+    return `${pillar.order}.${question.order}`;
   };
 
   if (loading) {
@@ -245,7 +256,7 @@ function Backoffice() {
         </div>
 
         {editingQuestion && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
             <div className="bg-zinc-800 rounded-lg p-6 max-w-md w-full">
               <h3 className="text-xl font-medium text-white mb-4">
                 {isNewQuestion ? 'Configurar Nova Pergunta' : 'Editar Pergunta'}
@@ -391,7 +402,7 @@ function Backoffice() {
                     >
                       <div className="flex items-start gap-4">
                         <span className="text-gray-300 font-medium w-[60px] flex-shrink-0">
-                          {question.id}
+                          {getQuestionDisplayId(pillar, question)}
                         </span>
                         <div className="flex-grow">
                           <div className="flex items-start justify-between gap-4">
