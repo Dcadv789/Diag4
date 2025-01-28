@@ -3,6 +3,7 @@ import { Stethoscope, X, ArrowRight, ArrowLeft } from 'lucide-react';
 import useLocalStorage from '../hooks/useLocalStorage';
 import { useDiagnosticCalculation } from '../hooks/useDiagnosticCalculation';
 import type { CompanyData, Pillar, Question } from '../types/diagnostic';
+import { Particles } from './Particles';
 
 interface DiagnosticModalProps {
   isOpen: boolean;
@@ -156,8 +157,15 @@ function DiagnosticModal({ isOpen, onClose }: DiagnosticModalProps) {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-zinc-900 rounded-lg w-full max-w-4xl">
+    <div className="fixed inset-0 bg-black flex items-center justify-center p-4 z-50">
+      <Particles
+        className="absolute inset-0"
+        quantity={50}
+        staticity={30}
+        ease={50}
+        size={0.5}
+      />
+      <div className="bg-zinc-900 rounded-lg w-full max-w-4xl relative z-10">
         <div className="bg-zinc-800 p-6 border-b border-zinc-700 flex justify-between items-center rounded-t-lg">
           <div className="flex items-start gap-4">
             <Stethoscope size={32} className="text-blue-500 mt-1" />
@@ -422,7 +430,7 @@ function DiagnosticModal({ isOpen, onClose }: DiagnosticModalProps) {
                               answers[question.id] === 'NÃO'
                                 ? 'bg-blue-600 text-white'
                                 : 'bg-zinc-800 text-gray-300 hover:bg-zinc-700'
-                            }`}
+                              }`}
                           >
                             Não
                           </button>
@@ -486,5 +494,3 @@ function DiagnosticModal({ isOpen, onClose }: DiagnosticModalProps) {
 }
 
 export default DiagnosticModal;
-
-export default DiagnosticModal
