@@ -1,95 +1,35 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Upload } from 'lucide-react';
-import { useStorage } from '../hooks/useStorage';
-import { supabase } from '../lib/supabase';
-import type { Settings } from '../types/diagnostic';
+import useLocalStorage from '../hooks/useLocalStorage';
 
 function LogoUpload() {
-  const { uploadLogo, removeLogo, loading } = useStorage();
-  const [settings, setSettings] = useState<Settings | null>(null);
-  const [error, setError] = useState<string | null>(null);
+  const [logo, setLogo] = useLocalStorage<string>('company_logo', '');
+  const [navbarLogo, setNavbarLogo] = useLocalStorage<string>('navbar_logo', '');
 
-  useEffect(() => {
-    const fetchSettings = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('settings')
-          .select('*')
-          .single();
-
-        if (error) throw error;
-        setSettings(data);
-      } catch (err: any) {
-        setError(err.message);
-      }
-    };
-
-    fetchSettings();
-
-    // Subscribe to realtime changes
-    const channel = supabase
-      .channel('settings_changes')
-      .on('postgres_changes', 
-        { event: '*', schema: 'public', table: 'settings' },
-        (payload) => {
-          setSettings(payload.new as Settings);
-        }
-      )
-      .subscribe();
-
-    return () => {
-      channel.unsubscribe();
-    };
-  }, []);
-
-  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>, isNavbar: boolean) => {
+  const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>, isNavbar: boolean) => {
     const file = event.target.files?.[0];
-    if (!file) return;
+    if (file) {
+      if (file.type !== 'image/svg+xml' && file.type !== 'image/png') {
+        alert('Por favor, selecione apenas arquivos SVG ou PNG.');
+        return;
+      }
 
-    if (file.type !== 'image/svg+xml' && file.type !== 'image/png') {
-      setError('Por favor, selecione apenas arquivos SVG ou PNG.');
-      return;
-    }
-
-    try {
-      await uploadLogo(file, isNavbar ? 'navbar_logo' : 'logo');
-    } catch (err: any) {
-      setError(err.message);
-    }
-  };
-
-  const handleLogoRemove = async (isNavbar: boolean) => {
-    try {
-      await removeLogo(isNavbar ? 'navbar_logo' : 'logo');
-    } catch (err: any) {
-      setError(err.message);
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        const result = reader.result as string;
+        if (isNavbar) {
+          setNavbarLogo(result);
+        } else {
+          setLogo(result);
+        }
+      };
+      reader.readAsDataURL(file);
     }
   };
-
-  if (!settings) {
-    return (
-      <div className="bg-zinc-900 rounded-lg p-8 mt-6">
-        <div className="animate-pulse">
-          <div className="h-8 bg-zinc-800 rounded w-1/4 mb-6"></div>
-          <div className="space-y-4">
-            <div className="h-32 bg-zinc-800 rounded"></div>
-            <div className="h-32 bg-zinc-800 rounded"></div>
-          </div>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="bg-zinc-900 rounded-lg p-8 mt-6">
       <h2 className="text-2xl font-semibold text-white mb-6">Logos da Empresa</h2>
-      
-      {error && (
-        <div className="bg-red-500/10 text-red-500 p-4 rounded-lg mb-6">
-          {error}
-        </div>
-      )}
-
       <div className="grid grid-cols-2 gap-8">
         <div>
           <h3 className="text-lg font-medium text-white mb-4">Logo do Diagnóstico</h3>
@@ -98,19 +38,16 @@ function LogoUpload() {
               <div className="mb-4">
                 <label
                   htmlFor="logo-upload"
-                  className={`bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg flex items-center gap-2 cursor-pointer transition-colors ${
-                    loading ? 'opacity-50 cursor-not-allowed' : ''
-                  }`}
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg flex items-center gap-2 cursor-pointer transition-colors"
                 >
                   <Upload size={20} />
-                  {loading ? 'Enviando...' : 'Fazer upload da logo'}
+                  Fazer upload da logo
                 </label>
                 <input
                   id="logo-upload"
                   type="file"
                   accept=".svg,.png"
                   onChange={(e) => handleLogoUpload(e, false)}
-                  disabled={loading}
                   className="hidden"
                 />
               </div>
@@ -128,17 +65,16 @@ function LogoUpload() {
             </div>
             <div>
               <p className="text-sm font-medium text-gray-300 mb-2">Visualização:</p>
-              {settings.logo ? (
+              {logo ? (
                 <div className="relative group">
                   <img
-                    src={settings.logo}
+                    src={logo}
                     alt="Logo da empresa"
                     className="w-32 h-32 object-contain bg-zinc-800 rounded-lg p-4"
                   />
                   <button
-                    onClick={() => handleLogoRemove(false)}
-                    disabled={loading}
-                    className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
+                    onClick={() => setLogo('')}
+                    className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
                   >
                     Remover
                   </button>
@@ -159,19 +95,16 @@ function LogoUpload() {
               <div className="mb-4">
                 <label
                   htmlFor="navbar-logo-upload"
-                  className={`bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg flex items-center gap-2 cursor-pointer transition-colors ${
-                    loading ? 'opacity-50 cursor-not-allowed' : ''
-                  }`}
+                  className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg flex items-center gap-2 cursor-pointer transition-colors"
                 >
                   <Upload size={20} />
-                  {loading ? 'Enviando...' : 'Fazer upload da logo'}
+                  Fazer upload da logo
                 </label>
                 <input
                   id="navbar-logo-upload"
                   type="file"
                   accept=".svg,.png"
                   onChange={(e) => handleLogoUpload(e, true)}
-                  disabled={loading}
                   className="hidden"
                 />
               </div>
@@ -189,17 +122,16 @@ function LogoUpload() {
             </div>
             <div>
               <p className="text-sm font-medium text-gray-300 mb-2">Visualização:</p>
-              {settings.navbar_logo ? (
+              {navbarLogo ? (
                 <div className="relative group">
                   <img
-                    src={settings.navbar_logo}
+                    src={navbarLogo}
                     alt="Logo da navbar"
                     className="h-8 w-auto object-contain bg-zinc-800 rounded-lg p-2"
                   />
                   <button
-                    onClick={() => handleLogoRemove(true)}
-                    disabled={loading}
-                    className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
+                    onClick={() => setNavbarLogo('')}
+                    className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
                   >
                     Remover
                   </button>

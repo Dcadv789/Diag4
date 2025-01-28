@@ -1,28 +1,9 @@
-import { useState, useCallback } from 'react';
-import { supabase } from '../lib/supabase';
-import type { DiagnosticResult, CompanyData, Pillar, PillarScore } from '../types/diagnostic';
+import { useCallback } from 'react';
+import { DiagnosticResult, CompanyData, Pillar, PillarScore } from '../types/diagnostic';
+import useLocalStorage from './useLocalStorage';
 
 export function useDiagnosticCalculation() {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-  const [results, setResults] = useState<DiagnosticResult[]>([]);
-
-  const fetchResults = useCallback(async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('diagnostic_results')
-        .select('*')
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setResults(data || []);
-    } catch (err: any) {
-      setError(err.message);
-    } finally {
-      setLoading(false);
-    }
-  }, []);
+  const [results, setResults] = useLocalStorage<DiagnosticResult[]>('diagnostic_results', []);
 
   const calculateScore = useCallback((answers: Record<string, string>, pillars: Pillar[]): {
     pillarScores: PillarScore[];
@@ -68,59 +49,31 @@ export function useDiagnosticCalculation() {
     };
   }, []);
 
-  const saveDiagnosticResult = useCallback(async (
+  const saveDiagnosticResult = useCallback((
     companyData: CompanyData,
     answers: Record<string, string>,
     pillars: Pillar[]
   ) => {
-    try {
-      setLoading(true);
-      const { pillarScores, totalScore, maxPossibleScore, percentageScore } = calculateScore(answers, pillars);
+    const { pillarScores, totalScore, maxPossibleScore, percentageScore } = calculateScore(answers, pillars);
 
-      const user = (await supabase.auth.getUser()).data.user;
-      if (!user) throw new Error('User not authenticated');
+    const result: DiagnosticResult = {
+      id: crypto.randomUUID(),
+      date: new Date().toISOString(),
+      companyData,
+      answers,
+      pillarScores,
+      totalScore,
+      maxPossibleScore,
+      percentageScore
+    };
 
-      const result: Omit<DiagnosticResult, 'id' | 'date'> = {
-        companyData,
-        answers,
-        pillarScores,
-        totalScore,
-        maxPossibleScore,
-        percentageScore
-      };
-
-      const { data, error } = await supabase
-        .from('diagnostic_results')
-        .insert([{
-          user_id: user.id,
-          company_data: companyData,
-          answers,
-          pillar_scores: pillarScores,
-          total_score: totalScore,
-          max_possible_score: maxPossibleScore,
-          percentage_score: percentageScore
-        }])
-        .select()
-        .single();
-
-      if (error) throw error;
-      
-      await fetchResults();
-      return data;
-    } catch (err: any) {
-      setError(err.message);
-      throw err;
-    } finally {
-      setLoading(false);
-    }
-  }, [calculateScore, fetchResults]);
+    setResults(prev => [...prev, result]);
+    return result;
+  }, [calculateScore, setResults]);
 
   return {
     results,
-    loading,
-    error,
     calculateScore,
-    saveDiagnosticResult,
-    fetchResults
+    saveDiagnosticResult
   };
 }

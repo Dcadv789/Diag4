@@ -1,21 +1,19 @@
-import React, { createContext, useEffect, useState } from 'react';
+import React, { createContext, useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, NavLink } from 'react-router-dom';
 import { Stethoscope, Building2, LineChart } from 'lucide-react';
+import { supabase } from './lib/supabase';
 import Diagnostico from './pages/Diagnostico';
 import Backoffice from './pages/Backoffice';
 import Resultados from './pages/Resultados';
 import ProfileSettings from './pages/ProfileSettings';
 import Login from './pages/Login';
 import UserNavbar from './components/UserNavbar';
-import { useAuth } from './hooks/useAuth';
-import { User } from '@supabase/supabase-js';
+import useLocalStorage from './hooks/useLocalStorage';
 
 interface AuthContextType {
-  user: User | null;
-  loading: boolean;
-  signIn: (email: string, password: string) => Promise<void>;
-  signUp: (email: string, password: string) => Promise<void>;
-  signOut: () => Promise<void>;
+  isAuthenticated: boolean;
+  login: (email: string, password: string) => Promise<void>;
+  logout: () => void;
 }
 
 export const AuthContext = createContext<AuthContextType | null>(null);
@@ -23,11 +21,7 @@ export const AuthContext = createContext<AuthContextType | null>(null);
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const auth = React.useContext(AuthContext);
   
-  if (auth?.loading) {
-    return <div>Loading...</div>;
-  }
-
-  if (!auth?.user) {
+  if (!auth?.isAuthenticated) {
     return <Navigate to="/login" />;
   }
 
@@ -35,13 +29,41 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
 }
 
 function App() {
-  const { user, loading, signIn, signUp, signOut } = useAuth();
-  const [navbarLogo] = useState<string>('');
+  const [navbarLogo] = useLocalStorage<string>('navbar_logo', '');
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
+
+  useEffect(() => {
+    supabase.auth.onAuthStateChange((event, session) => {
+      setIsAuthenticated(!!session);
+    });
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setIsAuthenticated(!!session);
+    });
+  }, []);
+
+  const login = async (email: string, password: string) => {
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    setIsAuthenticated(true);
+  };
+
+  const logout = async () => {
+    await supabase.auth.signOut();
+    setIsAuthenticated(false);
+  };
 
   return (
-    <AuthContext.Provider value={{ user, loading, signIn, signUp, signOut }}>
+    <AuthContext.Provider value={{ isAuthenticated, login, logout }}>
       <Router>
-        {user ? (
+        {isAuthenticated ? (
           <div className="min-h-screen bg-black">
             <nav className="bg-zinc-900 px-4 py-3">
               <div className="max-w-7xl mx-auto flex items-center">

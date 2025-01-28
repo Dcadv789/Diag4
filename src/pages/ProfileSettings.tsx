@@ -1,9 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Save, Upload, Pencil, Loader2 } from 'lucide-react';
-import useLocalStorage from '../hooks/useLocalStorage';
+import { supabase } from '../lib/supabase';
 
 interface UserProfile {
-  name: string;
   email: string;
   fullName: string;
   position: string;
@@ -11,21 +10,31 @@ interface UserProfile {
 }
 
 function ProfileSettings() {
-  const [user, setUser] = useLocalStorage<UserProfile>('user', {
-    name: 'User',
-    email: 'user@example.com',
+  const [userEmail, setUserEmail] = useState('');
+  const [isEditing, setIsEditing] = useState(false);
+  const [isEditingPassword, setIsEditingPassword] = useState(false);
+  const [formData, setFormData] = useState<UserProfile>({
+    email: '',
     fullName: '',
     position: '',
     phone: ''
   });
-  
-  const [isEditing, setIsEditing] = useState(false);
-  const [isEditingPassword, setIsEditingPassword] = useState(false);
-  const [formData, setFormData] = useState<UserProfile>(user);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user?.email) {
+        setUserEmail(user.email);
+        setFormData(prev => ({ ...prev, email: user.email }));
+      }
+    };
+
+    getUser();
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -33,28 +42,35 @@ function ProfileSettings() {
     
     // Simulate API call
     setTimeout(() => {
-      setUser(formData);
       setIsEditing(false);
       setLoading(false);
     }, 1000);
   };
 
-  const handlePasswordChange = (e: React.FormEvent) => {
+  const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
 
-    // Simulate API call
-    setTimeout(() => {
+    try {
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword
+      });
+
+      if (error) throw error;
+
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
       setIsEditingPassword(false);
+    } catch (err) {
+      console.error('Erro ao atualizar senha:', err);
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
   const handleCancel = () => {
-    setFormData(user);
+    setFormData(prev => ({ ...prev, email: userEmail }));
     setIsEditing(false);
   };
 
@@ -78,7 +94,7 @@ function ProfileSettings() {
             <div className="flex items-center gap-6">
               <div className="w-24 h-24 rounded-full bg-blue-600 flex items-center justify-center">
                 <span className="text-4xl font-medium text-white">
-                  {formData.name[0].toUpperCase()}
+                  {userEmail.charAt(0).toUpperCase()}
                 </span>
               </div>
               <div>
@@ -132,26 +148,12 @@ function ProfileSettings() {
             <div className="grid grid-cols-2 gap-6">
               <div>
                 <label className="block text-sm font-medium text-gray-300 mb-1">
-                  Nome de Usuário
-                </label>
-                <input
-                  type="text"
-                  value={formData.name}
-                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                  disabled={!isEditing}
-                  className="w-full bg-zinc-800 text-white rounded-lg px-3 py-2 border border-zinc-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-300 mb-1">
                   E-mail
                 </label>
                 <input
                   type="email"
                   value={formData.email}
-                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                  disabled={!isEditing}
+                  disabled
                   className="w-full bg-zinc-800 text-white rounded-lg px-3 py-2 border border-zinc-700 focus:border-blue-500 focus:ring-1 focus:ring-blue-500 disabled:opacity-50 disabled:cursor-not-allowed"
                 />
               </div>

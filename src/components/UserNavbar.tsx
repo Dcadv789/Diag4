@@ -1,33 +1,30 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Settings, LogOut, ChevronDown, ChevronUp } from 'lucide-react';
+import { supabase } from '../lib/supabase';
 import { AuthContext } from '../App';
 
 function UserNavbar() {
   const [isOpen, setIsOpen] = useState(false);
+  const [userEmail, setUserEmail] = useState('');
   const navigate = useNavigate();
   const auth = React.useContext(AuthContext);
 
-  const handleLogout = async () => {
-    try {
-      await auth?.signOut();
-      navigate('/login');
-    } catch (error) {
-      console.error('Error signing out:', error);
-    }
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user?.email) {
+        setUserEmail(user.email);
+      }
+    };
+
+    getUser();
+  }, []);
+
+  const handleLogout = () => {
+    auth?.logout();
+    navigate('/login');
   };
-
-  if (auth?.loading) {
-    return (
-      <div className="animate-pulse">
-        <div className="h-10 w-48 bg-zinc-800 rounded-lg"></div>
-      </div>
-    );
-  }
-
-  if (!auth?.user) {
-    return null;
-  }
 
   return (
     <div className="relative">
@@ -37,11 +34,12 @@ function UserNavbar() {
       >
         <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center">
           <span className="text-sm font-medium text-white">
-            {auth.user.email?.[0].toUpperCase()}
+            {userEmail.charAt(0).toUpperCase()}
           </span>
         </div>
         <div className="text-left">
-          <p className="text-sm font-medium text-white">{auth.user.email}</p>
+          <p className="text-sm font-medium text-white">Minha Conta</p>
+          <p className="text-xs text-gray-400">{userEmail}</p>
         </div>
         {isOpen ? (
           <ChevronUp className="text-gray-400" size={20} />
