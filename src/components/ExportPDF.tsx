@@ -13,7 +13,9 @@ function ExportPDF({ result }: ExportPDFProps) {
     const pdf = new jsPDF({
       orientation: 'portrait',
       unit: 'mm',
-      format: [210, 470]
+      format: [210, 470],
+      compress: false,
+      precision: 4
     });
 
     const pageWidth = pdf.internal.pageSize.getWidth();
@@ -42,7 +44,7 @@ function ExportPDF({ result }: ExportPDFProps) {
               <p style="text-sm text-gray-400 margin: 0;">powered by</p>
               <div style="display: flex; align-items: center; gap: 8px;">
                 <span style="color: white; font-weight: 600;">CompanyName</span>
-                <div style="width: 32px; height: 32px; background-color: #F47400; border-radius: 50%; display: flex; align-items: center; justify-content: center;">
+                <div style="width: 32px; height: 32px; background-color: #F47400; border-radius: 50%; display: flex; align-items: center; justify-center: center;">
                   <span style="color: white; font-weight: bold;">C</span>
                 </div>
               </div>
@@ -209,15 +211,24 @@ function ExportPDF({ result }: ExportPDFProps) {
 
     try {
       const canvas = await html2canvas(content, {
-        scale: 2,
+        scale: 4,
         useCORS: true,
         logging: false,
         windowWidth: content.scrollWidth,
-        windowHeight: content.scrollHeight
+        windowHeight: content.scrollHeight,
+        allowTaint: true,
+        backgroundColor: null,
+        imageTimeout: 0,
+        onclone: (clonedDoc) => {
+          const element = clonedDoc.querySelector('div');
+          if (element) {
+            element.style.transform = 'scale(1)';
+          }
+        }
       });
 
-      const imgData = canvas.toDataURL('image/png');
-      pdf.addImage(imgData, 'PNG', 0, 0, pageWidth, pageHeight);
+      const imgData = canvas.toDataURL('image/png', 1.0);
+      pdf.addImage(imgData, 'PNG', 0, 0, pageWidth, pageHeight, '', 'FAST');
       pdf.save(`diagnostico-${result.companyData.empresa.toLowerCase().replace(/\s+/g, '-')}.pdf`);
     } catch (error) {
       console.error('Erro ao gerar PDF:', error);
