@@ -29,7 +29,7 @@ function ExportPDF({ result }: ExportPDFProps) {
         <div style="padding: 32px 40px; border-bottom: 2px solid rgba(255, 255, 255, 0.1);">
           <div style="display: flex; justify-content: space-between; align-items: flex-start;">
             <div style="display: flex; align-items: flex-start; gap: 150px;">
-              <div style="display: flex; flex-direction: column; justify-content: space-between; height: 20px;">
+              <div style="display: flex; flex-direction: column; justify-content: space-between; height: 80px;">
                 <h1 style="color: white; font-size: 28px; font-weight: bold; margin: 0;">Diagnóstico Financeiro Empresarial</h1>
                 <p style="color: rgba(255, 255, 255, 0.8); font-size: 14px; margin: 0;">
                   Emitido em ${new Date().toLocaleDateString('pt-BR', {
