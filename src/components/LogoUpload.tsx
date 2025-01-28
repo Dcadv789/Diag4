@@ -1,42 +1,75 @@
-import React from 'react';
-import { Upload } from 'lucide-react';
-import useLocalStorage from '../hooks/useLocalStorage';
+import React, { useState, useEffect } from 'react';
+import { Upload, Loader2 } from 'lucide-react';
+import { useStorage } from '../hooks/useStorage';
+import { supabase } from '../lib/supabase';
 
 function LogoUpload() {
-  const [logo, setLogo] = useLocalStorage<string>('company_logo', '');
-  const [navbarLogo, setNavbarLogo] = useLocalStorage<string>('navbar_logo', '');
+  const { uploadLogo, removeLogo } = useStorage();
+  const [loading, setLoading] = useState(false);
+  const [settings, setSettings] = useState<{ logo: string | null; navbar_logo: string | null }>({
+    logo: null,
+    navbar_logo: null
+  });
 
-  const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  useEffect(() => {
+    // Subscribe to settings changes
+    const subscription = supabase
+      .from('settings')
+      .select('logo, navbar_logo')
+      .single()
+      .then(({ data }) => {
+        if (data) {
+          setSettings(data);
+        }
+      });
+
+    const channel = supabase
+      .channel('settings_changes')
+      .on('postgres_changes', { 
+        event: '*', 
+        schema: 'public', 
+        table: 'settings' 
+      }, payload => {
+        setSettings(payload.new);
+      })
+      .subscribe();
+
+    return () => {
+      channel.unsubscribe();
+    };
+  }, []);
+
+  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'navbar_logo') => {
     const file = event.target.files?.[0];
-    if (file) {
-      if (file.type !== 'image/svg+xml' && file.type !== 'image/png') {
-        alert('Por favor, selecione apenas arquivos SVG ou PNG.');
-        return;
-      }
+    if (!file) return;
 
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const result = reader.result as string;
-        setLogo(result);
-      };
-      reader.readAsDataURL(file);
+    if (file.type !== 'image/svg+xml' && file.type !== 'image/png') {
+      alert('Por favor, selecione apenas arquivos SVG ou PNG.');
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const url = await uploadLogo(file, type);
+      setSettings(prev => ({ ...prev, [type]: url }));
+    } catch (error) {
+      console.error('Erro ao fazer upload:', error);
+      alert('Erro ao fazer upload da logo.');
+    } finally {
+      setLoading(false);
     }
   };
 
-  const handleNavbarLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      if (file.type !== 'image/svg+xml' && file.type !== 'image/png') {
-        alert('Por favor, selecione apenas arquivos SVG ou PNG.');
-        return;
-      }
-
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const result = reader.result as string;
-        setNavbarLogo(result);
-      };
-      reader.readAsDataURL(file);
+  const handleLogoRemove = async (type: 'logo' | 'navbar_logo') => {
+    try {
+      setLoading(true);
+      await removeLogo(type);
+      setSettings(prev => ({ ...prev, [type]: null }));
+    } catch (error) {
+      console.error('Erro ao remover:', error);
+      alert('Erro ao remover a logo.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -52,15 +85,20 @@ function LogoUpload() {
                 htmlFor="logo-upload"
                 className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg flex items-center gap-2 cursor-pointer transition-colors"
               >
-                <Upload size={20} />
+                {loading ? (
+                  <Loader2 size={20} className="animate-spin" />
+                ) : (
+                  <Upload size={20} />
+                )}
                 Fazer upload da logo
               </label>
               <input
                 id="logo-upload"
                 type="file"
                 accept=".svg,.png"
-                onChange={handleLogoUpload}
+                onChange={(e) => handleLogoUpload(e, 'logo')}
                 className="hidden"
+                disabled={loading}
               />
             </div>
             <div className="space-y-2">
@@ -76,16 +114,17 @@ function LogoUpload() {
             </div>
             <div className="mt-4">
               <p className="text-sm font-medium text-gray-300 mb-2">Visualização:</p>
-              {logo ? (
+              {settings.logo ? (
                 <div className="relative group">
                   <img
-                    src={logo}
+                    src={settings.logo}
                     alt="Logo da empresa"
                     className="w-32 h-32 object-contain bg-zinc-800 rounded-lg p-4"
                   />
                   <button
-                    onClick={() => setLogo('')}
-                    className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => handleLogoRemove('logo')}
+                    disabled={loading}
+                    className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
                   >
                     Remover
                   </button>
@@ -107,15 +146,20 @@ function LogoUpload() {
                 htmlFor="navbar-logo-upload"
                 className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg flex items-center gap-2 cursor-pointer transition-colors"
               >
-                <Upload size={20} />
+                {loading ? (
+                  <Loader2 size={20} className="animate-spin" />
+                ) : (
+                  <Upload size={20} />
+                )}
                 Fazer upload da logo
               </label>
               <input
                 id="navbar-logo-upload"
                 type="file"
                 accept=".svg,.png"
-                onChange={handleNavbarLogoUpload}
+                onChange={(e) => handleLogoUpload(e, 'navbar_logo')}
                 className="hidden"
+                disabled={loading}
               />
             </div>
             <div className="space-y-2">
@@ -131,16 +175,17 @@ function LogoUpload() {
             </div>
             <div className="mt-4">
               <p className="text-sm font-medium text-gray-300 mb-2">Visualização:</p>
-              {navbarLogo ? (
+              {settings.navbar_logo ? (
                 <div className="relative group">
                   <img
-                    src={navbarLogo}
+                    src={settings.navbar_logo}
                     alt="Logo da navbar"
                     className="w-32 h-12 object-contain bg-zinc-800 rounded-lg p-4"
                   />
                   <button
-                    onClick={() => setNavbarLogo('')}
-                    className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => handleLogoRemove('navbar_logo')}
+                    disabled={loading}
+                    className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
                   >
                     Remover
                   </button>

@@ -1,7 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Mail, Lock, Loader2, AlertCircle } from 'lucide-react';
+import { Lock, Loader2, AlertCircle } from 'lucide-react';
 import { AuthContext } from '../App';
+import useLocalStorage from '../hooks/useLocalStorage';
 
 function Login() {
   const navigate = useNavigate();
@@ -10,6 +11,7 @@ function Login() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const auth = React.useContext(AuthContext);
+  const [navbarLogo] = useLocalStorage<string>('navbar_logo', '');
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,17 +31,25 @@ function Login() {
   return (
     <div className="min-h-screen bg-black flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <div className="w-16 h-16 bg-blue-600 rounded-full flex items-center justify-center mx-auto mb-4">
-            <Mail size={32} className="text-white" />
-          </div>
-          <h1 className="text-3xl font-bold text-white">Bem-vindo</h1>
-          <p className="text-gray-400 mt-2">
-            Faça login para acessar sua conta
-          </p>
-        </div>
-
         <div className="bg-zinc-900 rounded-lg p-8">
+          <div className="flex flex-col items-center mb-8">
+            {navbarLogo ? (
+              <img
+                src={navbarLogo}
+                alt="Logo"
+                className="h-12 mb-6"
+              />
+            ) : (
+              <div className="w-32 h-12 bg-zinc-800 rounded-lg flex items-center justify-center mb-6">
+                <span className="text-zinc-500">Logo</span>
+              </div>
+            )}
+            <h1 className="text-3xl font-bold text-white">Bem-vindo</h1>
+            <p className="text-gray-400 mt-2">
+              Faça login para acessar sua conta
+            </p>
+          </div>
+
           {error && (
             <div className="mb-6 p-4 bg-red-500/20 text-red-400 rounded-lg flex items-center gap-2">
               <AlertCircle size={20} />
@@ -52,19 +62,14 @@ function Login() {
               <label className="block text-sm font-medium text-gray-300 mb-2">
                 E-mail
               </label>
-              <div className="relative">
-                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                  <Mail size={20} className="text-gray-500" />
-                </div>
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="block w-full pl-10 bg-zinc-800 border border-zinc-700 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
-                  placeholder="Digite seu e-mail"
-                  required
-                />
-              </div>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="block w-full bg-zinc-800 border border-zinc-700 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                placeholder="Digite seu e-mail"
+                required
+              />
             </div>
 
             <div>
