@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Stethoscope, X, ArrowRight, ArrowLeft } from 'lucide-react';
-import useLocalStorage from '../hooks/useLocalStorage';
+import { supabase } from '../lib/supabase';
 import { useDiagnosticCalculation } from '../hooks/useDiagnosticCalculation';
 import type { CompanyData, Pillar, Question } from '../types/diagnostic';
 import { Particles } from './Particles';
@@ -47,7 +47,7 @@ const FORMAS_JURIDICAS = [
 function DiagnosticModal({ isOpen, onClose }: DiagnosticModalProps) {
   const [step, setStep] = useState<'form' | 'questions'>('form');
   const [currentPillarIndex, setCurrentPillarIndex] = useState(0);
-  const [pillars] = useLocalStorage<Pillar[]>('pillars', []);
+  const [pillars, setPillars] = useState<Pillar[]>([]);
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const { saveDiagnosticResult } = useDiagnosticCalculation();
   const [companyData, setCompanyData] = useState<CompanyData>({
@@ -62,9 +62,56 @@ function DiagnosticModal({ isOpen, onClose }: DiagnosticModalProps) {
     localizacao: '',
     formaJuridica: ''
   });
-  const [logo] = useLocalStorage<string>('company_logo', '');
-
+  const [navbarLogo, setNavbarLogo] = useState<string | null>(null);
   const [displayFaturamento, setDisplayFaturamento] = useState('');
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      const { data, error } = await supabase
+        .from('settings')
+        .select('navbar_logo')
+        .single();
+
+      if (!error && data) {
+        setNavbarLogo(data.navbar_logo);
+      }
+    };
+
+    const fetchPillars = async () => {
+      const { data, error } = await supabase
+        .from('pillars')
+        .select(`
+          id,
+          name,
+          questions (
+            id,
+            text,
+            points,
+            positive_answer,
+            answer_type
+          )
+        `)
+        .order('order');
+
+      if (!error && data) {
+        const formattedPillars = data.map(pillar => ({
+          id: pillar.id,
+          name: pillar.name,
+          questions: pillar.questions.map((q: any) => ({
+            id: q.id,
+            text: q.text,
+            points: q.points,
+            positiveAnswer: q.positive_answer,
+            answerType: q.answer_type
+          }))
+        }));
+        setPillars(formattedPillars);
+      }
+    };
+
+    fetchSettings();
+    fetchPillars();
+  }, []);
 
   const totalQuestions = React.useMemo(() => {
     return pillars.reduce((total, pillar) => total + pillar.questions.length, 0);
@@ -185,9 +232,9 @@ function DiagnosticModal({ isOpen, onClose }: DiagnosticModalProps) {
             </div>
           </div>
           <div className="flex items-center gap-4">
-            {logo ? (
+            {navbarLogo ? (
               <img
-                src={logo}
+                src={navbarLogo}
                 alt="Logo da empresa"
                 className="w-45 h-24 object-contain"
               />

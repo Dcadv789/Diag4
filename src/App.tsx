@@ -29,8 +29,8 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
 }
 
 function App() {
-  const [navbarLogo] = useLocalStorage<string>('navbar_logo', '');
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [navbarLogo, setNavbarLogo] = useState<string | null>(null);
 
   useEffect(() => {
     supabase.auth.onAuthStateChange((event, session) => {
@@ -40,6 +40,19 @@ function App() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setIsAuthenticated(!!session);
     });
+
+    const fetchSettings = async () => {
+      const { data, error } = await supabase
+        .from('settings')
+        .select('navbar_logo')
+        .single();
+
+      if (!error && data) {
+        setNavbarLogo(data.navbar_logo);
+      }
+    };
+
+    fetchSettings();
   }, []);
 
   const login = async (email: string, password: string) => {
