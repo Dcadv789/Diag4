@@ -21,8 +21,9 @@ function Login() {
     try {
       await auth?.login(email, password);
       navigate('/diagnostico');
-    } catch (error) {
-      setError('Erro ao fazer login. Verifique suas credenciais.');
+    } catch (error: any) {
+      console.error('Login error:', error);
+      setError(error.message || 'Erro ao fazer login. Verifique suas credenciais.');
     } finally {
       setLoading(false);
     }

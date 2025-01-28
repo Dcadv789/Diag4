@@ -7,11 +7,14 @@ import Resultados from './pages/Resultados';
 import ProfileSettings from './pages/ProfileSettings';
 import Login from './pages/Login';
 import useLocalStorage from './hooks/useLocalStorage';
+import { supabase } from './lib/supabase';
+import type { User } from '@supabase/supabase-js';
 
 interface AuthContextType {
   isAuthenticated: boolean;
+  user: User | null;
   login: (email: string, password: string) => Promise<void>;
-  logout: () => void;
+  logout: () => Promise<void>;
 }
 
 export const AuthContext = React.createContext<AuthContextType | null>(null);
@@ -151,32 +154,57 @@ function ProtectedRoute({ children }: { children: React.ReactNode }) {
 }
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    // Check active sessions and sets the user
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setUser(session?.user ?? null);
+    });
+
+    // Listen for changes on auth state (sign in, sign out, etc.)
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user ?? null);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
 
   const login = async (email: string, password: string) => {
-    // Simulate API call
-    return new Promise<void>((resolve) => {
-      setTimeout(() => {
-        setIsAuthenticated(true);
-        resolve();
-      }, 1500);
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
     });
+
+    if (error) {
+      throw error;
+    }
   };
 
-  const logout = () => {
-    setIsAuthenticated(false);
+  const logout = async () => {
+    const { error } = await supabase.auth.signOut();
+    if (error) {
+      throw error;
+    }
   };
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, login, logout }}>
+    <AuthContext.Provider value={{ 
+      isAuthenticated: !!user, 
+      user,
+      login, 
+      logout 
+    }}>
       <Router>
         <div className="min-h-screen bg-black">
           <Routes>
             <Route path="/login" element={
-              isAuthenticated ? <Navigate to="/diagnostico" /> : <Login />
+              user ? <Navigate to="/diagnostico" /> : <Login />
             } />
             <Route path="/" element={
-              <Navigate to={isAuthenticated ? "/diagnostico" : "/login"} />
+              <Navigate to={user ? "/diagnostico" : "/login"} />
             } />
             <Route path="/diagnostico" element={
               <ProtectedRoute>

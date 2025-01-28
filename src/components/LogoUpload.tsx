@@ -6,23 +6,51 @@ import { supabase } from '../lib/supabase';
 function LogoUpload() {
   const { uploadLogo, removeLogo } = useStorage();
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [settings, setSettings] = useState<{ logo: string | null; navbar_logo: string | null }>({
     logo: null,
     navbar_logo: null
   });
 
   useEffect(() => {
-    // Subscribe to settings changes
-    const subscription = supabase
-      .from('settings')
-      .select('logo, navbar_logo')
-      .single()
-      .then(({ data }) => {
+    const fetchSettings = async () => {
+      try {
+        // First check if the table exists
+        const { error: tableError } = await supabase
+          .from('settings')
+          .select('*')
+          .limit(1);
+
+        if (tableError) {
+          console.error('Settings table error:', tableError);
+          setError('Unable to load settings');
+          return;
+        }
+
+        // If table exists, get the settings
+        const { data, error } = await supabase
+          .from('settings')
+          .select('logo, navbar_logo')
+          .single();
+
+        if (error) {
+          console.error('Error fetching settings:', error);
+          setError('Unable to load settings');
+          return;
+        }
+
         if (data) {
           setSettings(data);
         }
-      });
+      } catch (err) {
+        console.error('Error:', err);
+        setError('Unable to load settings');
+      }
+    };
 
+    fetchSettings();
+
+    // Subscribe to realtime changes
     const channel = supabase
       .channel('settings_changes')
       .on('postgres_changes', { 
@@ -72,6 +100,15 @@ function LogoUpload() {
       setLoading(false);
     }
   };
+
+  if (error) {
+    return (
+      <div className="bg-zinc-900 rounded-lg p-8 mt-6">
+        <h2 className="text-2xl font-semibold text-white mb-6">Logos</h2>
+        <p className="text-red-400">{error}</p>
+      </div>
+    );
+  }
 
   return (
     <div className="bg-zinc-900 rounded-lg p-8 mt-6">
