@@ -1,44 +1,85 @@
-import React from 'react';
-import { BrowserRouter as Router, Routes, Route, NavLink, Navigate } from 'react-router-dom';
-import { Stethoscope, Building2, LineChart } from 'lucide-react';
+import React, { useState } from 'react';
+import { BrowserRouter as Router, Routes, Route, NavLink, useNavigate } from 'react-router-dom';
+import { Stethoscope, Building2, LineChart, Settings, LogOut, ChevronDown } from 'lucide-react';
 import Diagnostico from './pages/Diagnostico';
 import Backoffice from './pages/Backoffice';
 import Resultados from './pages/Resultados';
-import Configuracoes from './pages/Configuracoes';
-import Login from './pages/Login';
-import UserNavbar from './components/UserNavbar';
-import { useAuth } from './hooks/useAuth';
-import { useSettings } from './hooks/useSettings';
+import ProfileSettings from './pages/ProfileSettings';
+import useLocalStorage from './hooks/useLocalStorage';
+
+function UserMenu() {
+  const [isOpen, setIsOpen] = useState(false);
+  const navigate = useNavigate();
+  const [user] = useLocalStorage('user', {
+    name: 'User',
+    email: 'user@example.com'
+  });
+
+  const handleSignOut = () => {
+    // Add your sign out logic here
+    navigate('/');
+  };
+
+  return (
+    <div className="relative">
+      <button
+        onClick={() => setIsOpen(!isOpen)}
+        className="flex items-center gap-3 hover:bg-zinc-800 rounded-lg px-3 py-2 transition-colors"
+      >
+        <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center">
+          <span className="text-white font-medium">
+            {user.name[0].toUpperCase()}
+          </span>
+        </div>
+        <div className="text-left">
+          <p className="text-sm font-medium text-white">
+            {user.name}
+          </p>
+          <p className="text-xs text-gray-400">{user.email}</p>
+        </div>
+        <ChevronDown size={16} className="text-gray-400" />
+      </button>
+
+      {isOpen && (
+        <div className="absolute right-0 mt-2 w-48 bg-zinc-800 rounded-lg shadow-lg py-2">
+          <NavLink
+            to="/configuracoes"
+            className="flex items-center gap-2 px-4 py-2 text-sm text-gray-300 hover:bg-zinc-700 transition-colors"
+            onClick={() => setIsOpen(false)}
+          >
+            <Settings size={16} />
+            Configurações
+          </NavLink>
+          <button
+            onClick={handleSignOut}
+            className="flex items-center gap-2 px-4 py-2 text-sm text-red-400 hover:bg-zinc-700 transition-colors w-full text-left"
+          >
+            <LogOut size={16} />
+            Sair
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function App() {
-  const { user } = useAuth();
-  const { settings } = useSettings();
-
-  if (!user) {
-    return (
-      <Router>
-        <Routes>
-          <Route path="/login" element={<Login />} />
-          <Route path="*" element={<Navigate to="/login" replace />} />
-        </Routes>
-      </Router>
-    );
-  }
+  const [navbarLogo] = useLocalStorage<string>('navbar_logo', '');
 
   return (
     <Router>
       <div className="min-h-screen bg-black">
-        <nav className="bg-zinc-900 px-8 py-1">
+        <nav className="bg-zinc-900 px-8 py-3">
           <div className="max-w-7xl mx-auto flex items-center justify-between">
-            <div className="w-[240px] pl-8">
-              {settings?.navbarLogo ? (
+            <div className="w-[220px] pl-8">
+              {navbarLogo ? (
                 <img
-                  src={settings.navbarLogo}
+                  src={navbarLogo}
                   alt="Logo"
-                  className="h-14 w-auto object-contain"
+                  className="h-12 w-auto object-contain"
                 />
               ) : (
-                <div className="w-8" />
+                <div className="w-12" />
               )}
             </div>
             <div className="flex-1 flex justify-center space-x-8">
@@ -82,19 +123,19 @@ function App() {
                 Resultados
               </NavLink>
             </div>
-            <div className="w-[240px] flex justify-end pr-8">
-              <UserNavbar />
+            <div className="w-[220px] flex justify-end">
+              <UserMenu />
             </div>
           </div>
         </nav>
 
         <main className="max-w-7xl mx-auto py-6 px-8">
           <Routes>
-            <Route path="/" element={<Navigate to="/diagnostico" replace />} />
+            <Route path="/" element={<Diagnostico />} />
             <Route path="/diagnostico" element={<Diagnostico />} />
             <Route path="/backoffice" element={<Backoffice />} />
             <Route path="/resultados" element={<Resultados />} />
-            <Route path="/configuracoes" element={<Configuracoes />} />
+            <Route path="/configuracoes" element={<ProfileSettings />} />
           </Routes>
         </main>
       </div>

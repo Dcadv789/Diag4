@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { BarChart3, TrendingUp, Award, ChevronDown, ChevronUp, Trash2, ThumbsUp, ThumbsDown, Lightbulb } from 'lucide-react';
-import { useResults } from '../hooks/useResults';
+import { useDiagnosticCalculation } from '../hooks/useDiagnosticCalculation';
 import ExportPDF from '../components/ExportPDF';
 import type { DiagnosticResult, PillarScore } from '../types/diagnostic';
 
@@ -14,7 +14,7 @@ function getRecommendation(score: number): string {
   }
 }
 
-function DiagnosticCard({ result, onDelete }: { result: DiagnosticResult; onDelete: (firebaseId: string) => void }) {
+function DiagnosticCard({ result, onDelete }: { result: DiagnosticResult; onDelete: (id: string) => void }) {
   const [isExpanded, setIsExpanded] = useState(false);
   const maturityLevel = getMaturityLevel(Math.round(result.totalScore));
   const { best, worst } = getBestAndWorstPillars(result.pillarScores);
@@ -37,7 +37,7 @@ function DiagnosticCard({ result, onDelete }: { result: DiagnosticResult; onDele
           </div>
           <ExportPDF result={result} />
           <button
-            onClick={() => onDelete(result.firebaseId!)}
+            onClick={() => onDelete(result.id)}
             className="p-2 hover:bg-zinc-700 rounded-lg transition-colors text-red-500 hover:text-red-400"
           >
             <Trash2 size={20} />
@@ -266,38 +266,13 @@ function getMaturityLevel(score: number): {
 }
 
 function Resultados() {
-  const { results, loading, error, deleteResult } = useResults();
+  const { results, setResults } = useDiagnosticCalculation();
   const [isLatestExpanded, setIsLatestExpanded] = useState(false);
-  const latestResult = results[0]; // Assuming results are ordered by date desc
+  const latestResult = results[results.length - 1];
 
-  const handleDelete = async (firebaseId: string) => {
-    if (!firebaseId) return;
-    
-    if (window.confirm('Tem certeza que deseja excluir este diagnóstico?')) {
-      try {
-        await deleteResult(firebaseId);
-      } catch (error) {
-        console.error('Erro ao excluir resultado:', error);
-        alert('Erro ao excluir resultado. Tente novamente.');
-      }
-    }
+  const handleDelete = (id: string) => {
+    setResults(results.filter(result => result.id !== id));
   };
-
-  if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="bg-red-500/20 text-red-400 p-4 rounded-lg">
-        {error}
-      </div>
-    );
-  }
 
   if (!latestResult) {
     return (
@@ -357,7 +332,7 @@ function Resultados() {
                 </div>
                 <ExportPDF result={latestResult} />
                 <button
-                  onClick={() => handleDelete(latestResult.firebaseId!)}
+                  onClick={() => handleDelete(latestResult.id)}
                   className="p-2 hover:bg-zinc-800 rounded-lg transition-colors text-red-500 hover:text-red-400"
                 >
                   <Trash2 size={24} />
@@ -567,7 +542,7 @@ function Resultados() {
           <div className="bg-zinc-900 rounded-lg p-8">
             <h2 className="text-2xl font-semibold text-white mb-6">Histórico de Diagnósticos</h2>
             <div className="space-y-4">
-              {results.slice(1).map((result) => (
+              {results.slice(0, -1).reverse().map((result) => (
                 <DiagnosticCard key={result.id} result={result} onDelete={handleDelete} />
               ))}
             </div>
