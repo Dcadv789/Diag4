@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Plus, PlusCircle, Pencil } from 'lucide-react';
-import useLocalStorage from '../hooks/useLocalStorage';
 import LogoUpload from '../components/LogoUpload';
+import { supabase } from '../lib/supabase';
 
 interface Question {
   id: string;
@@ -12,25 +12,92 @@ interface Question {
 }
 
 interface Pillar {
-  id: number;
+  id: string;
   name: string;
+  order: number;
   questions: Question[];
 }
 
 function Backoffice() {
-  const [pillars, setPillars] = useLocalStorage<Pillar[]>('pillars', []);
+  const [pillars, setPillars] = useState<Pillar[]>([]);
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
   const [isNewQuestion, setIsNewQuestion] = useState(false);
-  const [editingPillarId, setEditingPillarId] = useState<number | null>(null);
+  const [editingPillarId, setEditingPillarId] = useState<string | null>(null);
   const [editingPillarName, setEditingPillarName] = useState('');
+  const [loading, setLoading] = useState(true);
 
-  const addPillar = () => {
-    const newPillar: Pillar = {
-      id: pillars.length + 1,
-      name: `Pilar ${pillars.length + 1}`,
-      questions: []
-    };
-    setPillars([...pillars, newPillar]);
+  useEffect(() => {
+    fetchPillars();
+  }, []);
+
+  const fetchPillars = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('pillars')
+        .select(`
+          id,
+          name,
+          order,
+          questions (
+            id,
+            text,
+            points,
+            positive_answer,
+            answer_type
+          )
+        `)
+        .order('order');
+
+      if (error) throw error;
+
+      const formattedPillars = data.map(pillar => ({
+        id: pillar.id,
+        name: pillar.name,
+        order: pillar.order,
+        questions: pillar.questions.map(q => ({
+          id: q.id,
+          text: q.text,
+          points: q.points,
+          positiveAnswer: q.positive_answer,
+          answerType: q.answer_type
+        }))
+      }));
+
+      setPillars(formattedPillars);
+      setLoading(false);
+    } catch (error) {
+      console.error('Erro ao buscar pilares:', error);
+      setLoading(false);
+    }
+  };
+
+  const addPillar = async () => {
+    try {
+      const newOrder = pillars.length + 1;
+      const { data, error } = await supabase
+        .from('pillars')
+        .insert([
+          {
+            name: `Pilar ${newOrder}`,
+            order: newOrder
+          }
+        ])
+        .select()
+        .single();
+
+      if (error) throw error;
+
+      const newPillar: Pillar = {
+        id: data.id,
+        name: data.name,
+        order: data.order,
+        questions: []
+      };
+
+      setPillars([...pillars, newPillar]);
+    } catch (error) {
+      console.error('Erro ao adicionar pilar:', error);
+    }
   };
 
   const startEditingPillar = (pillar: Pillar) => {
@@ -38,22 +105,38 @@ function Backoffice() {
     setEditingPillarName(pillar.name);
   };
 
-  const savePillarName = () => {
+  const savePillarName = async () => {
     if (editingPillarId === null) return;
-    setPillars(pillars.map(pillar => 
-      pillar.id === editingPillarId 
-        ? { ...pillar, name: editingPillarName }
-        : pillar
-    ));
-    setEditingPillarId(null);
-    setEditingPillarName('');
+
+    try {
+      const { error } = await supabase
+        .from('pillars')
+        .update({ name: editingPillarName })
+        .eq('id', editingPillarId);
+
+      if (error) throw error;
+
+      setPillars(pillars.map(pillar =>
+        pillar.id === editingPillarId
+          ? { ...pillar, name: editingPillarName }
+          : pillar
+      ));
+
+      setEditingPillarId(null);
+      setEditingPillarName('');
+    } catch (error) {
+      console.error('Erro ao salvar nome do pilar:', error);
+    }
   };
 
-  const addQuestion = (pillarId: number) => {
-    const questionNumber = pillars.find(p => p.id === pillarId)?.questions.length ?? 0;
+  const addQuestion = (pillarId: string) => {
+    const pillar = pillars.find(p => p.id === pillarId);
+    if (!pillar) return;
+
+    const questionNumber = pillar.questions.length + 1;
     const newQuestion: Question = {
-      id: `${pillarId}.${questionNumber + 1}`,
-      text: `Pergunta ${pillarId}.${questionNumber + 1}`,
+      id: `${pillarId}.${questionNumber}`,
+      text: `Pergunta ${pillarId}.${questionNumber}`,
       points: 1,
       positiveAnswer: 'SIM',
       answerType: 'BINARY'
@@ -67,31 +150,78 @@ function Backoffice() {
     setEditingQuestion(question);
   };
 
-  const saveQuestion = () => {
+  const saveQuestion = async () => {
     if (!editingQuestion) return;
 
-    setPillars(pillars.map(pillar => {
-      if (pillar.id === parseInt(editingQuestion.id.split('.')[0])) {
-        if (isNewQuestion) {
-          return {
-            ...pillar,
-            questions: [...pillar.questions, editingQuestion]
-          };
-        } else {
-          return {
-            ...pillar,
-            questions: pillar.questions.map(q => 
-              q.id === editingQuestion.id ? editingQuestion : q
-            )
-          };
-        }
-      }
-      return pillar;
-    }));
+    try {
+      const pillarId = editingQuestion.id.split('.')[0];
+      const questionData = {
+        pillar_id: pillarId,
+        text: editingQuestion.text,
+        points: editingQuestion.points,
+        positive_answer: editingQuestion.positiveAnswer,
+        answer_type: editingQuestion.answerType
+      };
 
-    setEditingQuestion(null);
-    setIsNewQuestion(false);
+      if (isNewQuestion) {
+        const { data, error } = await supabase
+          .from('questions')
+          .insert([questionData])
+          .select()
+          .single();
+
+        if (error) throw error;
+
+        setPillars(pillars.map(pillar => {
+          if (pillar.id === pillarId) {
+            return {
+              ...pillar,
+              questions: [...pillar.questions, {
+                id: data.id,
+                text: data.text,
+                points: data.points,
+                positiveAnswer: data.positive_answer,
+                answerType: data.answer_type
+              }]
+            };
+          }
+          return pillar;
+        }));
+      } else {
+        const { error } = await supabase
+          .from('questions')
+          .update(questionData)
+          .eq('id', editingQuestion.id);
+
+        if (error) throw error;
+
+        setPillars(pillars.map(pillar => {
+          if (pillar.id === pillarId) {
+            return {
+              ...pillar,
+              questions: pillar.questions.map(q =>
+                q.id === editingQuestion.id ? editingQuestion : q
+              )
+            };
+          }
+          return pillar;
+        }));
+      }
+
+      setEditingQuestion(null);
+      setIsNewQuestion(false);
+    } catch (error) {
+      console.error('Erro ao salvar pergunta:', error);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-white">Carregando...</div>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -231,7 +361,7 @@ function Backoffice() {
                 ) : (
                   <div className="flex items-center gap-2">
                     <h3 className="text-xl font-medium text-white">
-                      {pillar.id}. {pillar.name}
+                      {pillar.order}. {pillar.name}
                     </h3>
                     <button
                       onClick={() => startEditingPillar(pillar)}

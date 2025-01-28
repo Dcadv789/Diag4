@@ -3,10 +3,20 @@ import { useNavigate } from 'react-router-dom';
 import { Settings, LogOut, ChevronDown, ChevronUp } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 import { AuthContext } from '../App';
+import useLocalStorage from '../hooks/useLocalStorage';
+
+interface UserData {
+  name: string;
+  email: string;
+}
 
 function UserNavbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [userEmail, setUserEmail] = useState('');
+  const [userData] = useLocalStorage<UserData>('user_data', {
+    name: '',
+    email: ''
+  });
   const navigate = useNavigate();
   const auth = React.useContext(AuthContext);
 
@@ -34,11 +44,13 @@ function UserNavbar() {
       >
         <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center">
           <span className="text-sm font-medium text-white">
-            {userEmail.charAt(0).toUpperCase()}
+            {userData.name ? userData.name.charAt(0).toUpperCase() : userEmail.charAt(0).toUpperCase()}
           </span>
         </div>
         <div className="text-left">
-          <p className="text-sm font-medium text-white">Minha Conta</p>
+          <p className="text-sm font-medium text-white">
+            {userData.name || 'Usuário'}
+          </p>
           <p className="text-xs text-gray-400">{userEmail}</p>
         </div>
         {isOpen ? (
