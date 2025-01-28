@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Settings, User, Shield, Bell, Upload, Camera, Loader2 } from 'lucide-react';
+import { Settings, User, Shield, Camera, Loader2 } from 'lucide-react';
 import { useAuth } from '../hooks/useAuth';
 import { useStorage } from '../hooks/useStorage';
 import { doc, getDoc, setDoc } from 'firebase/firestore';
@@ -316,37 +316,6 @@ function Configuracoes() {
                 Alterar E-mail
               </button>
             </form>
-          </div>
-        </div>
-
-        <div className="bg-zinc-900 rounded-lg p-8">
-          <div className="flex items-center gap-3 mb-6">
-            <Bell size={24} className="text-blue-500" />
-            <h2 className="text-2xl font-semibold text-white">Notificações</h2>
-          </div>
-          
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-white font-medium">Notificações por e-mail</p>
-                <p className="text-sm text-gray-400">Receba atualizações sobre diagnósticos</p>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" className="sr-only peer" />
-                <div className="w-11 h-6 bg-zinc-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-              </label>
-            </div>
-
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-white font-medium">Relatórios semanais</p>
-                <p className="text-sm text-gray-400">Receba resumos semanais</p>
-              </div>
-              <label className="relative inline-flex items-center cursor-pointer">
-                <input type="checkbox" className="sr-only peer" />
-                <div className="w-11 h-6 bg-zinc-700 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-blue-800 rounded-full peer peer-checked:after:translate-x-full rtl:peer-checked:after:-translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:start-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-blue-600"></div>
-              </label>
-            </div>
           </div>
         </div>
       </div>

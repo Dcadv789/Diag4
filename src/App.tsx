@@ -1,15 +1,29 @@
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, NavLink } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, NavLink, Navigate } from 'react-router-dom';
 import { Stethoscope, Building2, LineChart } from 'lucide-react';
 import Diagnostico from './pages/Diagnostico';
 import Backoffice from './pages/Backoffice';
 import Resultados from './pages/Resultados';
 import Configuracoes from './pages/Configuracoes';
+import Login from './pages/Login';
 import UserNavbar from './components/UserNavbar';
 import useLocalStorage from './hooks/useLocalStorage';
+import { useAuth } from './hooks/useAuth';
 
 function App() {
   const [navbarLogo] = useLocalStorage<string>('navbar_logo', '');
+  const { user } = useAuth();
+
+  if (!user) {
+    return (
+      <Router>
+        <Routes>
+          <Route path="/login" element={<Login />} />
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </Routes>
+      </Router>
+    );
+  }
 
   return (
     <Router>
@@ -68,7 +82,7 @@ function App() {
                 Resultados
               </NavLink>
             </div>
-            <div className="w-[240px] flex justify-end">
+            <div className="w-[240px] flex justify-end pr-8">
               <UserNavbar />
             </div>
           </div>
