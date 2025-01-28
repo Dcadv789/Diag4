@@ -90,7 +90,7 @@ function App() {
 
         <main className="max-w-7xl mx-auto py-6 px-8">
           <Routes>
-            <Route path="/" element={<Diagnostico />} />
+            <Route path="/" element={<Navigate to="/diagnostico" replace />} />
             <Route path="/diagnostico" element={<Diagnostico />} />
             <Route path="/backoffice" element={<Backoffice />} />
             <Route path="/resultados" element={<Resultados />} />
