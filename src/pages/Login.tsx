@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Lock, Loader2, AlertCircle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
@@ -9,27 +9,6 @@ function Login() {
   const [error, setError] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [navbarLogo, setNavbarLogo] = useState<string | null>(null);
-
-  useEffect(() => {
-    const fetchSettings = async () => {
-      try {
-        const { data, error } = await supabase
-          .from('settings')
-          .select('navbar_logo')
-          .eq('id', '00000000-0000-0000-0000-000000000000')
-          .single();
-
-        if (!error && data) {
-          setNavbarLogo(data.navbar_logo);
-        }
-      } catch (err) {
-        console.error('Error fetching settings:', err);
-      }
-    };
-
-    fetchSettings();
-  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -57,18 +36,6 @@ function Login() {
 
   return (
     <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4">
-      {navbarLogo && (
-        <img
-          src={navbarLogo}
-          alt="Logo"
-          className="h-16 mb-12"
-          onError={(e) => {
-            const target = e.target as HTMLImageElement;
-            target.style.display = 'none';
-          }}
-        />
-      )}
-      
       <div className="w-full max-w-md">
         <div className="bg-zinc-900 rounded-lg p-8">
           <div className="flex flex-col items-center mb-8">
