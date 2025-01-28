@@ -62,18 +62,18 @@ function DiagnosticModal({ isOpen, onClose }: DiagnosticModalProps) {
     localizacao: '',
     formaJuridica: ''
   });
-  const [navbarLogo, setNavbarLogo] = useState<string | null>(null);
+  const [logo, setLogo] = useState<string | null>(null);
   const [displayFaturamento, setDisplayFaturamento] = useState('');
 
   useEffect(() => {
     const fetchSettings = async () => {
       const { data, error } = await supabase
         .from('settings')
-        .select('navbar_logo')
+        .select('logo')
         .single();
 
       if (!error && data) {
-        setNavbarLogo(data.navbar_logo);
+        setLogo(data.logo);
       }
     };
 
@@ -232,9 +232,9 @@ function DiagnosticModal({ isOpen, onClose }: DiagnosticModalProps) {
             </div>
           </div>
           <div className="flex items-center gap-4">
-            {navbarLogo ? (
+            {logo ? (
               <img
-                src={navbarLogo}
+                src={logo}
                 alt="Logo da empresa"
                 className="w-45 h-24 object-contain"
               />
