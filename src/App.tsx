@@ -1,4 +1,4 @@
-import React, { createContext, useState } from 'react';
+import React, { createContext, useEffect, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate, NavLink } from 'react-router-dom';
 import { Stethoscope, Building2, LineChart } from 'lucide-react';
 import Diagnostico from './pages/Diagnostico';
@@ -7,12 +7,15 @@ import Resultados from './pages/Resultados';
 import ProfileSettings from './pages/ProfileSettings';
 import Login from './pages/Login';
 import UserNavbar from './components/UserNavbar';
-import useLocalStorage from './hooks/useLocalStorage';
+import { useAuth } from './hooks/useAuth';
+import { User } from '@supabase/supabase-js';
 
 interface AuthContextType {
-  isAuthenticated: boolean;
-  login: (email: string, password: string) => Promise<void>;
-  logout: () => void;
+  user: User | null;
+  loading: boolean;
+  signIn: (email: string, password: string) => Promise<void>;
+  signUp: (email: string, password: string) => Promise<void>;
+  signOut: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | null>(null);
@@ -20,7 +23,11 @@ export const AuthContext = createContext<AuthContextType | null>(null);
 function PrivateRoute({ children }: { children: React.ReactNode }) {
   const auth = React.useContext(AuthContext);
   
-  if (!auth?.isAuthenticated) {
+  if (auth?.loading) {
+    return <div>Loading...</div>;
+  }
+
+  if (!auth?.user) {
     return <Navigate to="/login" />;
   }
 
@@ -28,26 +35,13 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
 }
 
 function App() {
-  const [navbarLogo] = useLocalStorage<string>('navbar_logo', '');
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-
-  const login = async (email: string, password: string) => {
-    // In a real app, this would validate credentials against a backend
-    if (email && password) {
-      setIsAuthenticated(true);
-    } else {
-      throw new Error('Credenciais inválidas');
-    }
-  };
-
-  const logout = () => {
-    setIsAuthenticated(false);
-  };
+  const { user, loading, signIn, signUp, signOut } = useAuth();
+  const [navbarLogo] = useState<string>('');
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, login, logout }}>
+    <AuthContext.Provider value={{ user, loading, signIn, signUp, signOut }}>
       <Router>
-        {isAuthenticated ? (
+        {user ? (
           <div className="min-h-screen bg-black">
             <nav className="bg-zinc-900 px-4 py-3">
               <div className="max-w-7xl mx-auto flex items-center">
