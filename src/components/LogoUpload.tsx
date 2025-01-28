@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Upload } from 'lucide-react';
 import { useStorage } from '../hooks/useStorage';
 import { useSettings } from '../hooks/useSettings';
@@ -64,7 +64,7 @@ function LogoUpload() {
     }
   };
 
-  const handleRemoveLogo = async (type: 'logo' | 'navbar') => {
+  const handleRemoveLogo = async (type: 'logo' | 'navbarLogo') => {
     try {
       setLoading(true);
       const currentLogo = type === 'logo' ? settings.logo : settings.navbarLogo;
@@ -95,7 +95,7 @@ function LogoUpload() {
             <div className="mb-4">
               <label
                 htmlFor="logo-upload"
-                className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg flex items-center gap-2 cursor-pointer transition-colors disabled:opacity-50"
+                className={`bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg flex items-center gap-2 cursor-pointer transition-colors ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 <Upload size={20} />
                 Fazer upload da logo
@@ -131,7 +131,7 @@ function LogoUpload() {
                   />
                   <button
                     onClick={() => handleRemoveLogo('logo')}
-                    className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
+                    className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
                     disabled={loading}
                   >
                     Remover
@@ -152,7 +152,7 @@ function LogoUpload() {
             <div className="mb-4">
               <label
                 htmlFor="navbar-logo-upload"
-                className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg flex items-center gap-2 cursor-pointer transition-colors disabled:opacity-50"
+                className={`bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg flex items-center gap-2 cursor-pointer transition-colors ${loading ? 'opacity-50 cursor-not-allowed' : ''}`}
               >
                 <Upload size={20} />
                 Fazer upload da logo
@@ -187,8 +187,8 @@ function LogoUpload() {
                     className="w-32 h-12 object-contain bg-zinc-800 rounded-lg p-4"
                   />
                   <button
-                    onClick={() => handleRemoveLogo('navbar')}
-                    className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
+                    onClick={() => handleRemoveLogo('navbarLogo')}
+                    className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
                     disabled={loading}
                   >
                     Remover

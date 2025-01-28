@@ -13,7 +13,9 @@ export function useSettings() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const unsubscribe = onSnapshot(doc(db, 'settings', 'logos'), (doc) => {
+    const settingsRef = doc(db, 'settings', 'logos');
+    
+    const unsubscribe = onSnapshot(settingsRef, (doc) => {
       try {
         if (doc.exists()) {
           setSettings(doc.data() as Settings);
