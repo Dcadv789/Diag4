@@ -41,11 +41,11 @@ function Login() {
             <img
               src={navbarLogo}
               alt="Logo"
-              className="h-20 w-auto mx-auto object-contain"
+              className="h-14 w-auto mx-auto object-contain"
             />
           ) : (
-            <div className="w-full h-20 flex items-center justify-center">
-              <Mail size={48} className="text-blue-500" />
+            <div className="w-full h-17 flex items-center justify-center">
+              <Mail size={40} className="text-blue-500" />
             </div>
           )}
         </div>

@@ -1,29 +1,32 @@
 import React from 'react';
 import { Upload } from 'lucide-react';
-import useLocalStorage from '../hooks/useLocalStorage';
+import { useStorage } from '../hooks/useStorage';
+import { useFirestore } from '../hooks/useFirestore';
 
 function LogoUpload() {
-  const [logo, setLogo] = useLocalStorage<string>('company_logo', '');
-  const [navbarLogo, setNavbarLogo] = useLocalStorage<string>('navbar_logo', '');
+  const { uploadFile, deleteFile } = useStorage();
+  const { update } = useFirestore('settings');
+  const [logo, setLogo] = React.useState<string>('');
+  const [navbarLogo, setNavbarLogo] = React.useState<string>('');
+  const [loading, setLoading] = React.useState(false);
 
-  const handleLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (file) {
-      if (file.type !== 'image/svg+xml' && file.type !== 'image/png') {
-        alert('Por favor, selecione apenas arquivos SVG ou PNG.');
-        return;
+  React.useEffect(() => {
+    loadLogos();
+  }, []);
+
+  const loadLogos = async () => {
+    try {
+      const settings = await useFirestore('settings').getById('logos');
+      if (settings) {
+        setLogo(settings.logo || '');
+        setNavbarLogo(settings.navbarLogo || '');
       }
-
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const result = reader.result as string;
-        setLogo(result);
-      };
-      reader.readAsDataURL(file);
+    } catch (error) {
+      console.error('Erro ao carregar logos:', error);
     }
   };
 
-  const handleNavbarLogoUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) {
       if (file.type !== 'image/svg+xml' && file.type !== 'image/png') {
@@ -31,12 +34,80 @@ function LogoUpload() {
         return;
       }
 
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const result = reader.result as string;
-        setNavbarLogo(result);
-      };
-      reader.readAsDataURL(file);
+      try {
+        setLoading(true);
+        const path = `logos/company-logo-${Date.now()}${file.name.substring(file.name.lastIndexOf('.'))}`;
+        const downloadURL = await uploadFile(file, path);
+        
+        if (logo) {
+          // Extract the old path from the URL
+          const oldPath = logo.split('?')[0].split('/o/')[1].replace(/%2F/g, '/');
+          await deleteFile(decodeURIComponent(oldPath));
+        }
+
+        setLogo(downloadURL);
+        await update('logos', { logo: downloadURL });
+      } catch (error) {
+        console.error('Erro ao fazer upload da logo:', error);
+        alert('Erro ao fazer upload da logo. Tente novamente.');
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
+  const handleNavbarLogoUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (file.type !== 'image/svg+xml' && file.type !== 'image/png') {
+        alert('Por favor, selecione apenas arquivos SVG ou PNG.');
+        return;
+      }
+
+      try {
+        setLoading(true);
+        const path = `logos/navbar-logo-${Date.now()}${file.name.substring(file.name.lastIndexOf('.'))}`;
+        const downloadURL = await uploadFile(file, path);
+
+        if (navbarLogo) {
+          // Extract the old path from the URL
+          const oldPath = navbarLogo.split('?')[0].split('/o/')[1].replace(/%2F/g, '/');
+          await deleteFile(decodeURIComponent(oldPath));
+        }
+
+        setNavbarLogo(downloadURL);
+        await update('logos', { navbarLogo: downloadURL });
+      } catch (error) {
+        console.error('Erro ao fazer upload da logo:', error);
+        alert('Erro ao fazer upload da logo. Tente novamente.');
+      } finally {
+        setLoading(false);
+      }
+    }
+  };
+
+  const handleRemoveLogo = async (type: 'logo' | 'navbar') => {
+    try {
+      setLoading(true);
+      const currentLogo = type === 'logo' ? logo : navbarLogo;
+      
+      if (currentLogo) {
+        const oldPath = currentLogo.split('?')[0].split('/o/')[1].replace(/%2F/g, '/');
+        await deleteFile(decodeURIComponent(oldPath));
+        
+        if (type === 'logo') {
+          setLogo('');
+          await update('logos', { logo: '' });
+        } else {
+          setNavbarLogo('');
+          await update('logos', { navbarLogo: '' });
+        }
+      }
+    } catch (error) {
+      console.error('Erro ao remover logo:', error);
+      alert('Erro ao remover logo. Tente novamente.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -50,7 +121,7 @@ function LogoUpload() {
             <div className="mb-4">
               <label
                 htmlFor="logo-upload"
-                className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg flex items-center gap-2 cursor-pointer transition-colors"
+                className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg flex items-center gap-2 cursor-pointer transition-colors disabled:opacity-50"
               >
                 <Upload size={20} />
                 Fazer upload da logo
@@ -61,6 +132,7 @@ function LogoUpload() {
                 accept=".svg,.png"
                 onChange={handleLogoUpload}
                 className="hidden"
+                disabled={loading}
               />
             </div>
             <div className="space-y-2">
@@ -84,8 +156,9 @@ function LogoUpload() {
                     className="w-32 h-32 object-contain bg-zinc-800 rounded-lg p-4"
                   />
                   <button
-                    onClick={() => setLogo('')}
-                    className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => handleRemoveLogo('logo')}
+                    className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
+                    disabled={loading}
                   >
                     Remover
                   </button>
@@ -105,7 +178,7 @@ function LogoUpload() {
             <div className="mb-4">
               <label
                 htmlFor="navbar-logo-upload"
-                className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg flex items-center gap-2 cursor-pointer transition-colors"
+                className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg flex items-center gap-2 cursor-pointer transition-colors disabled:opacity-50"
               >
                 <Upload size={20} />
                 Fazer upload da logo
@@ -116,6 +189,7 @@ function LogoUpload() {
                 accept=".svg,.png"
                 onChange={handleNavbarLogoUpload}
                 className="hidden"
+                disabled={loading}
               />
             </div>
             <div className="space-y-2">
@@ -139,8 +213,9 @@ function LogoUpload() {
                     className="w-32 h-12 object-contain bg-zinc-800 rounded-lg p-4"
                   />
                   <button
-                    onClick={() => setNavbarLogo('')}
-                    className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity"
+                    onClick={() => handleRemoveLogo('navbar')}
+                    className="absolute top-2 right-2 bg-red-500 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity disabled:opacity-50"
+                    disabled={loading}
                   >
                     Remover
                   </button>
