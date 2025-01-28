@@ -12,17 +12,19 @@ function App() {
   return (
     <Router>
       <div className="min-h-screen bg-black">
-        <nav className="bg-zinc-900 px-4 py-3">
+        <nav className="bg-zinc-900 px-8 py-3">
           <div className="max-w-7xl mx-auto flex items-center justify-between">
-            {navbarLogo ? (
-              <img
-                src={navbarLogo}
-                alt="Logo"
-                className="h-8 w-auto object-contain"
-              />
-            ) : (
-              <div className="w-8" />
-            )}
+            <div className="w-[180px] pl-8">
+              {navbarLogo ? (
+                <img
+                  src={navbarLogo}
+                  alt="Logo"
+                  className="h-10 w-auto object-contain"
+                />
+              ) : (
+                <div className="w-8" />
+              )}
+            </div>
             <div className="flex-1 flex justify-center space-x-8">
               <NavLink
                 to="/diagnostico"
@@ -64,11 +66,11 @@ function App() {
                 Resultados
               </NavLink>
             </div>
-            <div className="w-8" />
+            <div className="w-[180px]" />
           </div>
         </nav>
 
-        <main className="max-w-7xl mx-auto py-6 px-4">
+        <main className="max-w-7xl mx-auto py-6 px-8">
           <Routes>
             <Route path="/" element={<Diagnostico />} />
             <Route path="/diagnostico" element={<Diagnostico />} />
