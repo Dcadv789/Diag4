@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BarChart3, TrendingUp, Award, ChevronDown, ChevronUp, Trash2, ThumbsUp, ThumbsDown, Lightbulb } from 'lucide-react';
 import { useDiagnosticCalculation } from '../hooks/useDiagnosticCalculation';
 import ExportPDF from '../components/ExportPDF';
@@ -266,13 +266,30 @@ function getMaturityLevel(score: number): {
 }
 
 function Resultados() {
-  const { results, setResults } = useDiagnosticCalculation();
+  const { results, loading, error, fetchResults } = useDiagnosticCalculation();
   const [isLatestExpanded, setIsLatestExpanded] = useState(false);
-  const latestResult = results[results.length - 1];
 
-  const handleDelete = (id: string) => {
-    setResults(results.filter(result => result.id !== id));
-  };
+  useEffect(() => {
+    fetchResults();
+  }, [fetchResults]);
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p className="text-white">Carregando resultados...</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p className="text-red-500">Erro ao carregar resultados: {error}</p>
+      </div>
+    );
+  }
+
+  const latestResult = results[0]; // Results are ordered by date desc
 
   if (!latestResult) {
     return (
@@ -331,12 +348,6 @@ function Resultados() {
                   </p>
                 </div>
                 <ExportPDF result={latestResult} />
-                <button
-                  onClick={() => handleDelete(latestResult.id)}
-                  className="p-2 hover:bg-zinc-800 rounded-lg transition-colors text-red-500 hover:text-red-400"
-                >
-                  <Trash2 size={24} />
-                </button>
               </div>
             </div>
 
@@ -542,8 +553,8 @@ function Resultados() {
           <div className="bg-zinc-900 rounded-lg p-8">
             <h2 className="text-2xl font-semibold text-white mb-6">Histórico de Diagnósticos</h2>
             <div className="space-y-4">
-              {results.slice(0, -1).reverse().map((result) => (
-                <DiagnosticCard key={result.id} result={result} onDelete={handleDelete} />
+              {results.slice(1).map((result) => (
+                <DiagnosticCard key={result.id} result={result} onDelete={() => {}} />
               ))}
             </div>
           </div>

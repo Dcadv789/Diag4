@@ -1,65 +1,60 @@
 import React, { useState } from 'react';
 import { Plus, PlusCircle, Pencil } from 'lucide-react';
-import useLocalStorage from '../hooks/useLocalStorage';
+import { usePillars } from '../hooks/usePillars';
 import LogoUpload from '../components/LogoUpload';
-
-interface Question {
-  id: string;
-  text: string;
-  points: number;
-  positiveAnswer: 'SIM' | 'NÃO';
-  answerType: 'BINARY' | 'TERNARY';
-}
-
-interface Pillar {
-  id: number;
-  name: string;
-  questions: Question[];
-}
+import type { Question } from '../types/diagnostic';
 
 function Backoffice() {
-  const [pillars, setPillars] = useLocalStorage<Pillar[]>('pillars', []);
+  const { 
+    pillars, 
+    loading, 
+    addPillar, 
+    updatePillar, 
+    deletePillar,
+    addQuestion,
+    updateQuestion,
+    deleteQuestion 
+  } = usePillars();
+  
   const [editingQuestion, setEditingQuestion] = useState<Question | null>(null);
   const [isNewQuestion, setIsNewQuestion] = useState(false);
-  const [editingPillarId, setEditingPillarId] = useState<number | null>(null);
+  const [editingPillarId, setEditingPillarId] = useState<string | null>(null);
   const [editingPillarName, setEditingPillarName] = useState('');
 
-  const addPillar = () => {
-    const newPillar: Pillar = {
-      id: pillars.length + 1,
-      name: `Pilar ${pillars.length + 1}`,
-      questions: []
-    };
-    setPillars([...pillars, newPillar]);
+  const handleAddPillar = async () => {
+    try {
+      await addPillar(`Pilar ${pillars.length + 1}`);
+    } catch (error) {
+      console.error('Erro ao adicionar pilar:', error);
+    }
   };
 
-  const startEditingPillar = (pillar: Pillar) => {
-    setEditingPillarId(pillar.id);
-    setEditingPillarName(pillar.name);
+  const startEditingPillar = (pillarId: string, name: string) => {
+    setEditingPillarId(pillarId);
+    setEditingPillarName(name);
   };
 
-  const savePillarName = () => {
+  const savePillarName = async () => {
     if (editingPillarId === null) return;
-    setPillars(pillars.map(pillar => 
-      pillar.id === editingPillarId 
-        ? { ...pillar, name: editingPillarName }
-        : pillar
-    ));
-    setEditingPillarId(null);
-    setEditingPillarName('');
+    try {
+      await updatePillar(editingPillarId, { name: editingPillarName });
+      setEditingPillarId(null);
+      setEditingPillarName('');
+    } catch (error) {
+      console.error('Erro ao atualizar pilar:', error);
+    }
   };
 
-  const addQuestion = (pillarId: number) => {
+  const handleAddQuestion = (pillarId: string) => {
     const questionNumber = pillars.find(p => p.id === pillarId)?.questions.length ?? 0;
-    const newQuestion: Question = {
-      id: `${pillarId}.${questionNumber + 1}`,
-      text: `Pergunta ${pillarId}.${questionNumber + 1}`,
+    const newQuestion: Omit<Question, 'id'> = {
+      text: `Pergunta ${questionNumber + 1}`,
       points: 1,
       positiveAnswer: 'SIM',
       answerType: 'BINARY'
     };
     setIsNewQuestion(true);
-    setEditingQuestion(newQuestion);
+    setEditingQuestion({ ...newQuestion, id: '' });
   };
 
   const editQuestion = (question: Question) => {
@@ -67,31 +62,30 @@ function Backoffice() {
     setEditingQuestion(question);
   };
 
-  const saveQuestion = () => {
+  const saveQuestion = async () => {
     if (!editingQuestion) return;
 
-    setPillars(pillars.map(pillar => {
-      if (pillar.id === parseInt(editingQuestion.id.split('.')[0])) {
-        if (isNewQuestion) {
-          return {
-            ...pillar,
-            questions: [...pillar.questions, editingQuestion]
-          };
-        } else {
-          return {
-            ...pillar,
-            questions: pillar.questions.map(q => 
-              q.id === editingQuestion.id ? editingQuestion : q
-            )
-          };
-        }
+    try {
+      if (isNewQuestion) {
+        const pillarId = pillars[0].id.toString();
+        await addQuestion(pillarId, editingQuestion);
+      } else {
+        await updateQuestion(editingQuestion.id, editingQuestion);
       }
-      return pillar;
-    }));
-
-    setEditingQuestion(null);
-    setIsNewQuestion(false);
+      setEditingQuestion(null);
+      setIsNewQuestion(false);
+    } catch (error) {
+      console.error('Erro ao salvar pergunta:', error);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <p className="text-white">Carregando...</p>
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -104,7 +98,7 @@ function Backoffice() {
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-2xl font-semibold text-white">Pilares do Diagnóstico</h2>
           <button
-            onClick={addPillar}
+            onClick={handleAddPillar}
             className="bg-blue-600 hover:bg-blue-700 text-white font-medium py-2 px-4 rounded-lg flex items-center gap-2 transition-colors"
           >
             <Plus size={20} />
@@ -234,7 +228,7 @@ function Backoffice() {
                       {pillar.id}. {pillar.name}
                     </h3>
                     <button
-                      onClick={() => startEditingPillar(pillar)}
+                      onClick={() => startEditingPillar(pillar.id, pillar.name)}
                       className="text-gray-400 hover:text-white transition-colors"
                     >
                       <Pencil size={16} />
@@ -242,7 +236,7 @@ function Backoffice() {
                   </div>
                 )}
                 <button
-                  onClick={() => addQuestion(pillar.id)}
+                  onClick={() => handleAddQuestion(pillar.id)}
                   className="bg-green-600 hover:bg-green-700 text-white font-medium py-2 px-4 rounded-lg flex items-center gap-2 transition-colors"
                 >
                   <PlusCircle size={20} />

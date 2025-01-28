@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Stethoscope, X, ArrowRight, ArrowLeft } from 'lucide-react';
-import useLocalStorage from '../hooks/useLocalStorage';
+import { usePillars } from '../hooks/usePillars';
 import { useDiagnosticCalculation } from '../hooks/useDiagnosticCalculation';
-import type { CompanyData, Pillar, Question } from '../types/diagnostic';
+import type { CompanyData } from '../types/diagnostic';
 import { Particles } from './Particles';
 
 interface DiagnosticModalProps {
@@ -47,7 +47,7 @@ const FORMAS_JURIDICAS = [
 function DiagnosticModal({ isOpen, onClose }: DiagnosticModalProps) {
   const [step, setStep] = useState<'form' | 'questions'>('form');
   const [currentPillarIndex, setCurrentPillarIndex] = useState(0);
-  const [pillars] = useLocalStorage<Pillar[]>('pillars', []);
+  const { pillars, loading: loadingPillars } = usePillars();
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const { saveDiagnosticResult } = useDiagnosticCalculation();
   const [companyData, setCompanyData] = useState<CompanyData>({
@@ -62,7 +62,6 @@ function DiagnosticModal({ isOpen, onClose }: DiagnosticModalProps) {
     localizacao: '',
     formaJuridica: ''
   });
-  const [logo] = useLocalStorage<string>('company_logo', '');
 
   const [displayFaturamento, setDisplayFaturamento] = useState('');
 
@@ -110,13 +109,16 @@ function DiagnosticModal({ isOpen, onClose }: DiagnosticModalProps) {
     setDisplayFaturamento('R$ ');
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (step === 'form') {
       setStep('questions');
     } else {
-      const result = saveDiagnosticResult(companyData, answers, pillars);
-      console.log('Diagnóstico finalizado:', result);
-      onClose();
+      try {
+        await saveDiagnosticResult(companyData, answers, pillars);
+        onClose();
+      } catch (error) {
+        console.error('Erro ao salvar diagnóstico:', error);
+      }
     }
   };
 
@@ -156,6 +158,16 @@ function DiagnosticModal({ isOpen, onClose }: DiagnosticModalProps) {
     setCurrentPillarIndex(0);
   };
 
+  if (loadingPillars) {
+    return (
+      <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center">
+        <div className="bg-zinc-900 rounded-lg p-8">
+          <p className="text-white">Carregando...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="fixed inset-0 bg-black flex items-center justify-center p-4 z-50">
       <Particles
@@ -184,25 +196,12 @@ function DiagnosticModal({ isOpen, onClose }: DiagnosticModalProps) {
               </div>
             </div>
           </div>
-          <div className="flex items-center gap-4">
-            {logo ? (
-              <img
-                src={logo}
-                alt="Logo da empresa"
-                className="w-45 h-24 object-contain"
-              />
-            ) : (
-              <div className="w-32 h-16 bg-zinc-700 rounded-lg flex items-center justify-center">
-                <span className="text-zinc-500">Logo</span>
-              </div>
-            )}
-            <button
-              onClick={onClose}
-              className="text-gray-400 hover:text-white transition-colors"
-            >
-              <X size={24} />
-            </button>
-          </div>
+          <button
+            onClick={onClose}
+            className="text-gray-400 hover:text-white transition-colors"
+          >
+            <X size={24} />
+          </button>
         </div>
 
         {step === 'questions' && (
