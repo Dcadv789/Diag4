@@ -7,12 +7,12 @@ import Resultados from './pages/Resultados';
 import Configuracoes from './pages/Configuracoes';
 import Login from './pages/Login';
 import UserNavbar from './components/UserNavbar';
-import useLocalStorage from './hooks/useLocalStorage';
 import { useAuth } from './hooks/useAuth';
+import { useSettings } from './hooks/useSettings';
 
 function App() {
-  const [navbarLogo] = useLocalStorage<string>('navbar_logo', '');
   const { user } = useAuth();
+  const { settings } = useSettings();
 
   if (!user) {
     return (
@@ -31,9 +31,9 @@ function App() {
         <nav className="bg-zinc-900 px-8 py-1">
           <div className="max-w-7xl mx-auto flex items-center justify-between">
             <div className="w-[240px] pl-8">
-              {navbarLogo ? (
+              {settings?.navbarLogo ? (
                 <img
-                  src={navbarLogo}
+                  src={settings.navbarLogo}
                   alt="Logo"
                   className="h-14 w-auto object-contain"
                 />
