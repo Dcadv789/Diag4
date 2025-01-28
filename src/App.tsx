@@ -4,6 +4,8 @@ import { Stethoscope, Building2, LineChart } from 'lucide-react';
 import Diagnostico from './pages/Diagnostico';
 import Backoffice from './pages/Backoffice';
 import Resultados from './pages/Resultados';
+import Configuracoes from './pages/Configuracoes';
+import UserNavbar from './components/UserNavbar';
 import useLocalStorage from './hooks/useLocalStorage';
 
 function App() {
@@ -12,14 +14,14 @@ function App() {
   return (
     <Router>
       <div className="min-h-screen bg-black">
-        <nav className="bg-zinc-900 px-8 py-3">
+        <nav className="bg-zinc-900 px-8 py-1">
           <div className="max-w-7xl mx-auto flex items-center justify-between">
-            <div className="w-[180px] pl-8">
+            <div className="w-[240px] pl-8">
               {navbarLogo ? (
                 <img
                   src={navbarLogo}
                   alt="Logo"
-                  className="h-10 w-auto object-contain"
+                  className="h-14 w-auto object-contain"
                 />
               ) : (
                 <div className="w-8" />
@@ -66,7 +68,9 @@ function App() {
                 Resultados
               </NavLink>
             </div>
-            <div className="w-[180px]" />
+            <div className="w-[240px] flex justify-end">
+              <UserNavbar />
+            </div>
           </div>
         </nav>
 
@@ -76,6 +80,7 @@ function App() {
             <Route path="/diagnostico" element={<Diagnostico />} />
             <Route path="/backoffice" element={<Backoffice />} />
             <Route path="/resultados" element={<Resultados />} />
+            <Route path="/configuracoes" element={<Configuracoes />} />
           </Routes>
         </main>
       </div>

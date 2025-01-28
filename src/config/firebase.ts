@@ -12,6 +12,11 @@ const firebaseConfig = {
   appId: import.meta.env.VITE_FIREBASE_APP_ID
 };
 
+// Inicializa o Firebase apenas se as variáveis de ambiente estiverem definidas
+if (!firebaseConfig.apiKey || !firebaseConfig.authDomain || !firebaseConfig.projectId) {
+  console.warn('Configurações do Firebase não encontradas. Algumas funcionalidades podem não funcionar corretamente.');
+}
+
 const app = initializeApp(firebaseConfig);
 
 export const auth = getAuth(app);
