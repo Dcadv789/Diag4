@@ -19,7 +19,6 @@ export function useDiagnosticCalculation() {
 
       if (error) throw error;
 
-      // Converter os resultados do banco para o formato esperado pela aplicação
       const formattedResults = data.map(result => ({
         id: result.id,
         date: result.created_at,
@@ -90,21 +89,26 @@ export function useDiagnosticCalculation() {
   ) => {
     const { pillarScores, totalScore, maxPossibleScore, percentageScore } = calculateScore(answers, pillars);
 
-    const result: DiagnosticResult = {
-      id: crypto.randomUUID(),
-      date: new Date().toISOString(),
-      companyData,
-      answers,
-      pillarScores,
-      totalScore,
-      maxPossibleScore,
-      percentageScore
-    };
-
     try {
+      // Get the current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      const result: DiagnosticResult = {
+        id: crypto.randomUUID(),
+        date: new Date().toISOString(),
+        companyData,
+        answers,
+        pillarScores,
+        totalScore,
+        maxPossibleScore,
+        percentageScore
+      };
+
       const { error } = await supabase
         .from('diagnostic_results')
         .insert([{
+          user_id: user.id, // Explicitly set the user_id
           company_data: companyData,
           answers,
           pillar_scores: pillarScores,
