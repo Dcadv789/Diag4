@@ -180,18 +180,23 @@ function Backoffice() {
     setEditingQuestion({ ...newQuestion, id: pillarId });
   };
 
-  const editQuestion = (question: Question) => {
+  const editQuestion = (question: Question, pillarId: string) => {
     setIsNewQuestion(false);
-    setEditingQuestion(question);
+    setEditingQuestion({ ...question, id: question.id });
   };
 
   const saveQuestion = async () => {
     if (!editingQuestion) return;
 
     try {
-      const pillarId = isNewQuestion ? editingQuestion.id : editingQuestion.id.split('.')[0];
-      const pillar = pillars.find(p => p.id === pillarId);
-      if (!pillar) return;
+      const pillarId = isNewQuestion ? editingQuestion.id : pillars.find(p => 
+        p.questions.some(q => q.id === editingQuestion.id)
+      )?.id;
+
+      if (!pillarId) {
+        console.error('Pilar não encontrado');
+        return;
+      }
 
       const questionData = {
         pillar_id: pillarId,
@@ -235,17 +240,20 @@ function Backoffice() {
 
         if (error) throw error;
 
-        setPillars(pillars.map(p => {
-          if (p.id === pillarId) {
-            return {
-              ...p,
-              questions: p.questions.map(q =>
-                q.id === editingQuestion.id ? editingQuestion : q
-              )
-            };
-          }
-          return p;
-        }));
+        setPillars(pillars.map(p => ({
+          ...p,
+          questions: p.questions.map(q =>
+            q.id === editingQuestion.id
+              ? {
+                  ...q,
+                  text: editingQuestion.text,
+                  points: editingQuestion.points,
+                  positiveAnswer: editingQuestion.positiveAnswer,
+                  answerType: editingQuestion.answerType
+                }
+              : q
+          )
+        })));
       }
 
       setEditingQuestion(null);
@@ -450,7 +458,7 @@ function Backoffice() {
                             </span>
                             <div className="flex items-center gap-2">
                               <button
-                                onClick={() => editQuestion(question)}
+                                onClick={() => editQuestion(question, pillar.id)}
                                 className="text-gray-400 hover:text-white transition-colors flex-shrink-0"
                               >
                                 <Pencil size={16} />
