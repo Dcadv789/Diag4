@@ -1,18 +1,9 @@
 import React, { useState } from 'react';
 import { BarChart3, TrendingUp, Award, ChevronDown, ChevronUp, Trash2, ThumbsUp, ThumbsDown, Lightbulb } from 'lucide-react';
 import { useDiagnosticCalculation } from '../hooks/useDiagnosticCalculation';
+import { supabase } from '../lib/supabase';
 import ExportPDF from '../components/ExportPDF';
 import type { DiagnosticResult, PillarScore } from '../types/diagnostic';
-
-function getRecommendation(score: number): string {
-  if (score <= 40) {
-    return "Priorize a criação de um planejamento estratégico básico, organize as finanças e defina processos essenciais para o funcionamento do negócio. Considere buscar orientação de um consultor para acelerar essa estruturação.";
-  } else if (score <= 70) {
-    return "Foco em otimizar os processos existentes, investir em capacitação da equipe e melhorar a gestão financeira. Avalie ferramentas que possam automatizar operações e aumentar a eficiência.";
-  } else {
-    return "Concentre-se na inovação, expansão de mercado e diversificação de produtos/serviços. Invista em estratégias de marketing e mantenha um controle financeiro rigoroso para sustentar o crescimento.";
-  }
-}
 
 function DiagnosticCard({ result, onDelete }: { result: DiagnosticResult; onDelete: (id: string) => void }) {
   const [isExpanded, setIsExpanded] = useState(false);
@@ -194,7 +185,7 @@ function DiagnosticCard({ result, onDelete }: { result: DiagnosticResult; onDele
               }`}>
                 <h4 className="text-lg font-medium text-white mb-2">Inicial</h4>
                 <p className="text-gray-400 text-sm">
-                  O negócio está começando ou ainda não possui processos bem definidos. Planejamento e estruturação são prioridades.
+                  O negócio está começando ou ainda não possui processos bem definidos.
                 </p>
               </div>
               <div className={`p-6 rounded-lg border-2 ${
@@ -204,7 +195,7 @@ function DiagnosticCard({ result, onDelete }: { result: DiagnosticResult; onDele
               }`}>
                 <h4 className="text-lg font-medium text-white mb-2">Em Desenvolvimento</h4>
                 <p className="text-gray-400 text-sm">
-                  O negócio já possui alguns processos organizados, mas ainda enfrenta desafios para alcançar estabilidade e crescimento consistente.
+                  O negócio já possui alguns processos organizados, mas ainda enfrenta desafios.
                 </p>
               </div>
               <div className={`p-6 rounded-lg border-2 ${
@@ -214,7 +205,7 @@ function DiagnosticCard({ result, onDelete }: { result: DiagnosticResult; onDele
               }`}>
                 <h4 className="text-lg font-medium text-white mb-2">Consolidado</h4>
                 <p className="text-gray-400 text-sm">
-                  O negócio tem processos bem estabelecidos, boa gestão e está em um estágio de expansão ou consolidação no mercado.
+                  O negócio tem processos bem estabelecidos e está em fase de expansão.
                 </p>
               </div>
             </div>
@@ -265,14 +256,45 @@ function getMaturityLevel(score: number): {
   }
 }
 
-function Resultados() {
-  const { results, setResults } = useDiagnosticCalculation();
-  const [isLatestExpanded, setIsLatestExpanded] = useState(false);
-  const latestResult = results[results.length - 1];
+function getRecommendation(score: number): string {
+  if (score <= 40) {
+    return "Priorize a criação de um planejamento estratégico básico, organize as finanças e defina processos essenciais para o funcionamento do negócio. Considere buscar orientação de um consultor para acelerar essa estruturação.";
+  } else if (score <= 70) {
+    return "Foco em otimizar os processos existentes, investir em capacitação da equipe e melhorar a gestão financeira. Avalie ferramentas que possam automatizar operações e aumentar a eficiência.";
+  } else {
+    return "Concentre-se na inovação, expansão de mercado e diversificação de produtos/serviços. Invista em estratégias de marketing e mantenha um controle financeiro rigoroso para sustentar o crescimento.";
+  }
+}
 
-  const handleDelete = (id: string) => {
-    setResults(results.filter(result => result.id !== id));
+function Resultados() {
+  const { results, loading } = useDiagnosticCalculation();
+  const [isLatestExpanded, setIsLatestExpanded] = useState(false);
+  const latestResult = results[0];
+
+  const handleDelete = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('diagnostic_results')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      // Atualiza a lista removendo o resultado deletado
+      const updatedResults = results.filter(result => result.id !== id);
+      setResults(updatedResults);
+    } catch (error) {
+      console.error('Erro ao deletar resultado:', error);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-white">Carregando resultados...</div>
+      </div>
+    );
+  }
 
   if (!latestResult) {
     return (
@@ -542,7 +564,7 @@ function Resultados() {
           <div className="bg-zinc-900 rounded-lg p-8">
             <h2 className="text-2xl font-semibold text-white mb-6">Histórico de Diagnósticos</h2>
             <div className="space-y-4">
-              {results.slice(0, -1).reverse().map((result) => (
+              {results.slice(1).map((result) => (
                 <DiagnosticCard key={result.id} result={result} onDelete={handleDelete} />
               ))}
             </div>

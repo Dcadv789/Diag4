@@ -1,9 +1,43 @@
-import { useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { DiagnosticResult, CompanyData, Pillar, PillarScore } from '../types/diagnostic';
-import useLocalStorage from './useLocalStorage';
+import { supabase } from '../lib/supabase';
 
 export function useDiagnosticCalculation() {
-  const [results, setResults] = useLocalStorage<DiagnosticResult[]>('diagnostic_results', []);
+  const [results, setResults] = useState<DiagnosticResult[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchResults();
+  }, []);
+
+  const fetchResults = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('diagnostic_results')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      // Converter os resultados do banco para o formato esperado pela aplicação
+      const formattedResults = data.map(result => ({
+        id: result.id,
+        date: result.created_at,
+        companyData: result.company_data as CompanyData,
+        answers: result.answers as Record<string, string>,
+        pillarScores: result.pillar_scores as PillarScore[],
+        totalScore: result.total_score,
+        maxPossibleScore: result.max_possible_score,
+        percentageScore: result.percentage_score
+      }));
+
+      setResults(formattedResults);
+    } catch (error) {
+      console.error('Erro ao buscar resultados:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const calculateScore = useCallback((answers: Record<string, string>, pillars: Pillar[]): {
     pillarScores: PillarScore[];
@@ -49,7 +83,7 @@ export function useDiagnosticCalculation() {
     };
   }, []);
 
-  const saveDiagnosticResult = useCallback((
+  const saveDiagnosticResult = useCallback(async (
     companyData: CompanyData,
     answers: Record<string, string>,
     pillars: Pillar[]
@@ -67,12 +101,33 @@ export function useDiagnosticCalculation() {
       percentageScore
     };
 
-    setResults(prev => [...prev, result]);
-    return result;
-  }, [calculateScore, setResults]);
+    try {
+      const { error } = await supabase
+        .from('diagnostic_results')
+        .insert([{
+          company_data: companyData,
+          answers,
+          pillar_scores: pillarScores,
+          total_score: totalScore,
+          max_possible_score: maxPossibleScore,
+          percentage_score: percentageScore
+        }]);
+
+      if (error) throw error;
+
+      // Atualiza a lista de resultados após salvar
+      await fetchResults();
+      
+      return result;
+    } catch (error) {
+      console.error('Erro ao salvar resultado:', error);
+      throw error;
+    }
+  }, [calculateScore]);
 
   return {
     results,
+    loading,
     calculateScore,
     saveDiagnosticResult
   };
