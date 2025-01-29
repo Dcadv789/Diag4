@@ -23,33 +23,78 @@ function ProfileSettings() {
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user?.email) {
-        setUserEmail(user.email);
-        setFormData(prev => ({ ...prev, email: user.email }));
-      }
-    };
-
-    getUser();
+    loadUserProfile();
   }, []);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const loadUserProfile = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setUserEmail(user.email || '');
+        // Log the user metadata to see what we're getting
+        console.log('User metadata:', user.user_metadata);
+        
+        setFormData({
+          email: user.email || '',
+          // Use optional chaining to safely access metadata
+          fullName: user.user_metadata?.fullName || '',
+          position: user.user_metadata?.position || '',
+          phone: user.user_metadata?.phone || ''
+        });
+      }
+    } catch (err) {
+      console.error('Error loading user profile:', err);
+      setError('Erro ao carregar perfil do usuário');
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    
-    // Simulate API call
-    setTimeout(() => {
+    setError(null);
+
+    try {
+      // Update user metadata with the correct structure
+      const { data, error: updateError } = await supabase.auth.updateUser({
+        data: {
+          fullName: formData.fullName,
+          position: formData.position,
+          phone: formData.phone,
+          // Add updated_at to track when the profile was last modified
+          updated_at: new Date().toISOString()
+        }
+      });
+
+      if (updateError) throw updateError;
+
+      // Log the response to verify the update
+      console.log('Update response:', data);
+
+      // Reload the user profile to ensure we have the latest data
+      await loadUserProfile();
+      
       setIsEditing(false);
+    } catch (err: any) {
+      console.error('Error updating profile:', err);
+      setError(err.message || 'Erro ao atualizar perfil');
+    } finally {
       setLoading(false);
-    }, 1000);
+    }
   };
 
   const handlePasswordChange = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError(null);
+
+    if (newPassword !== confirmPassword) {
+      setError('As senhas não coincidem');
+      setLoading(false);
+      return;
+    }
 
     try {
       const { error } = await supabase.auth.updateUser({
@@ -62,15 +107,16 @@ function ProfileSettings() {
       setNewPassword('');
       setConfirmPassword('');
       setIsEditingPassword(false);
-    } catch (err) {
-      console.error('Erro ao atualizar senha:', err);
+    } catch (err: any) {
+      console.error('Error updating password:', err);
+      setError(err.message || 'Erro ao atualizar senha');
     } finally {
       setLoading(false);
     }
   };
 
   const handleCancel = () => {
-    setFormData(prev => ({ ...prev, email: userEmail }));
+    loadUserProfile(); // Reload original data
     setIsEditing(false);
   };
 
@@ -90,11 +136,17 @@ function ProfileSettings() {
 
       <div className="bg-zinc-900 rounded-lg p-8">
         <div className="max-w-2xl">
+          {error && (
+            <div className="mb-6 p-4 bg-red-500/20 text-red-400 rounded-lg">
+              {error}
+            </div>
+          )}
+
           <div className="mb-8">
             <div className="flex items-center gap-6">
               <div className="w-24 h-24 rounded-full bg-blue-600 flex items-center justify-center">
                 <span className="text-4xl font-medium text-white">
-                  {userEmail.charAt(0).toUpperCase()}
+                  {formData.fullName.charAt(0).toUpperCase() || userEmail.charAt(0).toUpperCase()}
                 </span>
               </div>
               <div>
