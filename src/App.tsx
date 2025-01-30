@@ -29,6 +29,7 @@ function PrivateRoute({ children }: { children: React.ReactNode }) {
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
+  const [navbarLogo, setNavbarLogo] = useState<string | null>(null);
 
   useEffect(() => {
     supabase.auth.onAuthStateChange((event, session) => {
@@ -38,6 +39,20 @@ function App() {
     supabase.auth.getSession().then(({ data: { session } }) => {
       setIsAuthenticated(!!session);
     });
+
+    // Carregar configurações da logo
+    const fetchSettings = async () => {
+      const { data, error } = await supabase
+        .from('settings')
+        .select('navbar_logo')
+        .single();
+
+      if (!error && data) {
+        setNavbarLogo(data.navbar_logo);
+      }
+    };
+
+    fetchSettings();
   }, []);
 
   const login = async (email: string, password: string) => {
@@ -65,8 +80,14 @@ function App() {
           <div className="min-h-screen bg-black">
             <nav className="bg-zinc-900 px-4 py-3">
               <div className="max-w-7xl mx-auto flex items-center">
-                <div className="w-1/4">
-                  {/* Logo área vazia para manter o layout */}
+                <div className="w-1/4 pl-8">
+                  {navbarLogo && (
+                    <img
+                      src={navbarLogo}
+                      alt="Logo"
+                      className="h-8 w-auto object-contain"
+                    />
+                  )}
                 </div>
                 
                 <div className="flex-1 flex justify-center">
