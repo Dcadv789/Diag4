@@ -36,8 +36,13 @@ function Login() {
 
   return (
     <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4">
-      <div className="w-full max-w-md">
-        <div className="bg-zinc-900 rounded-lg p-8">
+      <div className="w-full max-w-md flex flex-col items-center">
+        <img
+          src="https://aznchizusxvfegpubttp.supabase.co/storage/v1/object/public/logos/logos/navbar_1738197134885.svg"
+          alt="Logo"
+          className="h-12 mb-8 object-contain"
+        />
+        <div className="bg-zinc-900 rounded-lg p-8 w-full">
           <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-white">Bem-vindo</h1>
             <p className="text-gray-400 mt-2">
