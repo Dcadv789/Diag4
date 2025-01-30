@@ -80,7 +80,7 @@ function App() {
           <div className="min-h-screen bg-black">
             <nav className="bg-zinc-900 px-4 py-3">
               <div className="max-w-7xl mx-auto flex items-center">
-                <div className="w-1/4 pl-8">
+                <div className="w-1/4 pl-5">
                   {navbarLogo && (
                     <img
                       src={navbarLogo}
