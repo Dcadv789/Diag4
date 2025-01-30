@@ -7,33 +7,21 @@ import { AuthContext } from '../App';
 function UserNavbar() {
   const [isOpen, setIsOpen] = useState(false);
   const [userEmail, setUserEmail] = useState('');
-  const [userName, setUserName] = useState('');
-  const [navbarLogo, setNavbarLogo] = useState<string | null>(null);
+  const [fullName, setFullName] = useState('');
   const navigate = useNavigate();
   const auth = React.useContext(AuthContext);
 
   useEffect(() => {
     const getUser = async () => {
       const { data: { user } } = await supabase.auth.getUser();
-      if (user?.email) {
-        setUserEmail(user.email);
-        setUserName(user.user_metadata?.name || '');
-      }
-    };
-
-    const getSettings = async () => {
-      const { data, error } = await supabase
-        .from('settings')
-        .select('navbar_logo')
-        .single();
-
-      if (!error && data) {
-        setNavbarLogo(data.navbar_logo);
+      if (user) {
+        setUserEmail(user.email || '');
+        // Get the full name from user metadata
+        setFullName(user.user_metadata?.fullName || '');
       }
     };
 
     getUser();
-    getSettings();
   }, []);
 
   const handleLogout = () => {
@@ -49,12 +37,12 @@ function UserNavbar() {
       >
         <div className="w-8 h-8 rounded-full bg-blue-600 flex items-center justify-center">
           <span className="text-sm font-medium text-white">
-            {userName ? userName.charAt(0).toUpperCase() : userEmail.charAt(0).toUpperCase()}
+            {fullName ? fullName.charAt(0).toUpperCase() : userEmail.charAt(0).toUpperCase()}
           </span>
         </div>
         <div className="text-left">
           <p className="text-sm font-medium text-white">
-            {userName || 'Usuário'}
+            {fullName || userEmail}
           </p>
           <p className="text-xs text-gray-400">{userEmail}</p>
         </div>
