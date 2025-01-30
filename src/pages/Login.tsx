@@ -38,7 +38,7 @@ function Login() {
     <div className="min-h-screen bg-black flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-md">
         <div className="bg-zinc-900 rounded-lg p-8">
-          <div className="flex flex-col items-center mb-8">
+          <div className="text-center mb-8">
             <h1 className="text-3xl font-bold text-white">Bem-vindo</h1>
             <p className="text-gray-400 mt-2">
               Faça login para acessar sua conta
