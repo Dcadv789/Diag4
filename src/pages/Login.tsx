@@ -40,7 +40,7 @@ function Login() {
         <img
           src="https://aznchizusxvfegpubttp.supabase.co/storage/v1/object/public/logos/logos/navbar_1738197134885.svg"
           alt="Logo"
-          className="h-12 mb-8 object-contain"
+          className="h-[64px] mb-8 object-contain"
         />
         <div className="bg-zinc-900 rounded-lg p-8 w-full">
           <div className="text-center mb-8">
